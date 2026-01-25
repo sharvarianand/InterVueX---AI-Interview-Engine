@@ -570,3 +570,51 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Floating Brand Icon */
+.floating-brand-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.08;
+}
+
+.floating-brand-icon img {
+  width: 600px;
+  height: 600px;
+  object-fit: cover;
+  border-radius: 50%;
+  animation: brandFloat 8s ease-in-out infinite;
+}
+
+
+@keyframes brandFloat {
+
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  25% {
+    transform: translateY(-30px) rotate(2deg);
+  }
+
+  50% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  75% {
+    transform: translateY(30px) rotate(-2deg);
+  }
+}
+
+/* Responsive floating brand */
+@media (max-width: 768px) {
+  .floating-brand-icon img {
+    width: 300px;
+    height: 300px;
+  }
+}

@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="frontend/public/logo.png" alt="InterVueX Logo" width="120" />
+</div>
+
 # 🌐 InterVueX AI — Complete Application Summary
 
 ## **InterVueX AI**

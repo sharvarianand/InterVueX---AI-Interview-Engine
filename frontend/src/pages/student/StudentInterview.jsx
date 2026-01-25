@@ -211,8 +211,7 @@ export default function StudentInterview() {
     const [step, setStep] = useState('setup');
     const [config, setConfig] = useState({
         mode: location.state?.mode || 'interview',
-        githubUrl: '',
-        deploymentUrl: '',
+        resumeFile: null,
         persona: 'startup_cto',
     });
     const [currentQuestion, setCurrentQuestion] = useState(null);
@@ -424,28 +423,33 @@ export default function StudentInterview() {
                             </select>
                         </div>
 
-                        {/* GitHub URL */}
+                        {/* CV/Resume Upload */}
                         <div className="form-group">
-                            <label className="label">GitHub Repository URL</label>
-                            <input
-                                type="url"
-                                className="input"
-                                placeholder="https://github.com/username/project"
-                                value={config.githubUrl}
-                                onChange={(e) => setConfig({ ...config, githubUrl: e.target.value })}
-                            />
-                        </div>
-
-                        {/* Deployment URL */}
-                        <div className="form-group">
-                            <label className="label">Live Deployment URL</label>
-                            <input
-                                type="url"
-                                className="input"
-                                placeholder="https://myproject.vercel.app"
-                                value={config.deploymentUrl}
-                                onChange={(e) => setConfig({ ...config, deploymentUrl: e.target.value })}
-                            />
+                            <label className="label">CV/Resume (Optional)</label>
+                            <div className="file-upload-container">
+                                <input
+                                    type="file"
+                                    id="resume-upload"
+                                    className="file-input"
+                                    accept=".pdf,.doc,.docx"
+                                    onChange={(e) => {
+                                        const file = e.target.files[0];
+                                        if (file) {
+                                            setConfig({ ...config, resumeFile: file });
+                                        }
+                                    }}
+                                />
+                                <label htmlFor="resume-upload" className="file-upload-label">
+                                    {config.resumeFile ? (
+                                        <span>📄 {config.resumeFile.name}</span>
+                                    ) : (
+                                        <span>📎 Upload your CV/Resume (PDF, DOC, DOCX)</span>
+                                    )}
+                                </label>
+                            </div>
+                            <p className="help-text">
+                                Upload your resume to help the AI generate personalized interview questions based on your experience.
+                            </p>
                         </div>
 
                         {/* Persona */}
@@ -542,6 +546,46 @@ export default function StudentInterview() {
             margin: 0;
             font-size: 0.875rem;
             color: var(--color-gray-600);
+          }
+
+          .file-upload-container {
+            margin-top: 0.5rem;
+          }
+
+          .file-input {
+            display: none;
+          }
+
+          .file-upload-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.25rem;
+            border: 2px dashed var(--color-gray-300);
+            border-radius: var(--radius-lg);
+            background: var(--color-gray-50);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.875rem;
+            color: var(--color-gray-600);
+          }
+
+          .file-upload-label:hover {
+            border-color: var(--color-navy);
+            background: var(--color-gray-100);
+          }
+
+          .file-upload-label span {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+          }
+
+          .help-text {
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--color-gray-500);
+            line-height: 1.4;
           }
 
           .consent-box {

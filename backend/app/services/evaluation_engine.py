@@ -25,19 +25,73 @@ class EvaluationEngine:
         project_context: Optional[dict] = None,
     ) -> dict:
         """
-        Evaluate a single answer.
+        Evaluate a single answer using Gemini AI.
         Returns a structured evaluation with score and feedback.
         """
-        # TODO: Replace with actual LLM-based evaluation
-        # For MVP, use heuristic scoring
+        import json
+        from app.core.config import settings
+        
+        # Try to use Gemini API for intelligent evaluation
+        if settings.GEMINI_API_KEY and len(answer.strip()) > 10:
+            try:
+                import google.generativeai as genai
+                
+                genai.configure(api_key=settings.GEMINI_API_KEY)
+                model = genai.GenerativeModel("gemini-2.0-flash")
+                
+                eval_prompt = f"""You are an expert interview evaluator. Evaluate the following answer.
 
-        # Basic scoring heuristics
-        score = 0.5  # Default
+QUESTION: {question.question}
+FOCUS AREA: {question.focus}
+DIFFICULTY: {question.difficulty}
+
+CANDIDATE'S ANSWER: {answer}
+
+{f"PROJECT CONTEXT: {project_context.get('summary', '')}" if project_context else ""}
+
+Evaluate on a scale of 0.0 to 1.0 for each metric. Respond in JSON format ONLY:
+{{
+    "score": 0.0-1.0,
+    "reasoning_depth": 0.0-1.0,
+    "clarity": 0.0-1.0,
+    "confidence": 0.0-1.0,
+    "feedback": "Constructive 1-2 sentence feedback",
+    "strength": "One key strength shown",
+    "improvement": "One area to improve"
+}}"""
+                
+                response = model.generate_content(
+                    eval_prompt,
+                    generation_config=genai.GenerationConfig(
+                        temperature=0.3,
+                        max_output_tokens=300,
+                    )
+                )
+                
+                response_text = response.text.strip()
+                
+                # Handle markdown code blocks
+                if response_text.startswith("```json"):
+                    response_text = response_text[7:]
+                if response_text.startswith("```"):
+                    response_text = response_text[3:]
+                if response_text.endswith("```"):
+                    response_text = response_text[:-3]
+                
+                eval_data = json.loads(response_text.strip())
+                eval_data["focus"] = question.focus
+                return eval_data
+                
+            except Exception as e:
+                print(f"Gemini evaluation error: {e}")
+                # Fall through to heuristic evaluation
+        
+        # Fallback: Heuristic scoring
+        score = 0.5
         reasoning_depth = 0.5
         clarity = 0.5
         confidence = 0.5
 
-        # Length-based scoring (simple heuristic)
         word_count = len(answer.split())
         if word_count > 100:
             score += 0.2
@@ -49,7 +103,6 @@ class EvaluationEngine:
             score -= 0.2
             clarity -= 0.1
 
-        # Technical keywords boost
         technical_keywords = [
             "because", "trade-off", "considered", "alternative",
             "architecture", "scalability", "performance", "security",
@@ -59,7 +112,6 @@ class EvaluationEngine:
         score += min(keyword_count * 0.05, 0.2)
         reasoning_depth += min(keyword_count * 0.05, 0.2)
 
-        # Normalize scores
         score = max(0.0, min(1.0, score))
         reasoning_depth = max(0.0, min(1.0, reasoning_depth))
         clarity = max(0.0, min(1.0, clarity))
@@ -73,6 +125,7 @@ class EvaluationEngine:
             "confidence": confidence,
             "feedback": self._generate_feedback(score, question.focus),
         }
+
 
     def _generate_feedback(self, score: float, focus: str) -> str:
         """Generate feedback based on score."""

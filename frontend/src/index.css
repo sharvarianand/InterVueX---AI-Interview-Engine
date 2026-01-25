@@ -701,3 +701,27 @@ a:hover {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-gray-400);
 }
+
+/* Logo Circular Styling */
+img[src="/logo.png"],
+img[alt="InterVueX Logo"],
+img[alt="InterVueX"] {
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  background: white;
+  border: 2px solid var(--color-gray-200);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Logo in navigation - smaller border */
+.nav-logo img,
+.logo-icon {
+  border-radius: 50% !important;
+  border: 1px solid var(--color-gray-300);
+}
+
+/* Sidebar logo */
+.sidebar-logo img {
+  border-radius: 50% !important;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}

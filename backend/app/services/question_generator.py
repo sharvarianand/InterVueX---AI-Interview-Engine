@@ -118,17 +118,47 @@ class QuestionGenerator:
 
     async def _call_llm(self, prompt: str) -> dict:
         """
-        Call the LLM to generate a question.
-        For MVP, this returns mock data. Replace with actual Gemini/OpenAI call.
+        Call Gemini LLM to generate a question.
+        Falls back to mock data if API fails.
         """
-        # TODO: Replace with actual LLM call
-        # Example with Gemini:
-        # import google.generativeai as genai
-        # genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
-        # model = genai.GenerativeModel("gemini-pro")
-        # response = model.generate_content(prompt)
-
-        # Mock responses based on question count
+        import json
+        from app.core.config import settings
+        
+        # Try to use Gemini API if available
+        if settings.GEMINI_API_KEY:
+            try:
+                import google.generativeai as genai
+                
+                genai.configure(api_key=settings.GEMINI_API_KEY)
+                model = genai.GenerativeModel("gemini-2.0-flash")
+                
+                response = model.generate_content(
+                    prompt,
+                    generation_config=genai.GenerationConfig(
+                        temperature=0.7,
+                        max_output_tokens=500,
+                    )
+                )
+                
+                # Parse the JSON response
+                response_text = response.text.strip()
+                
+                # Handle markdown code blocks
+                if response_text.startswith("```json"):
+                    response_text = response_text[7:]
+                if response_text.startswith("```"):
+                    response_text = response_text[3:]
+                if response_text.endswith("```"):
+                    response_text = response_text[:-3]
+                
+                question_data = json.loads(response_text.strip())
+                return question_data
+                
+            except Exception as e:
+                print(f"Gemini API error: {e}")
+                # Fall through to mock data
+        
+        # Fallback: Mock responses based on question count
         mock_questions = [
             {
                 "question": "Tell me about this project. What problem does it solve and who is the target user?",
@@ -170,3 +200,4 @@ class QuestionGenerator:
 
         index = (self.question_count - 1) % len(mock_questions)
         return mock_questions[index]
+

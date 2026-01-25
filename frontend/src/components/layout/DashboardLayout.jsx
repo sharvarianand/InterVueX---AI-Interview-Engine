@@ -3,21 +3,16 @@ import { useAuth } from '../../context/AuthContext';
 
 // Product Icon Component
 export const ProductIcon = ({ size = 24, className = "" }) => (
-  <svg
+  <img
+    src="/logo.png"
+    alt="InterVueX Logo"
     width={size}
     height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
     className={className}
-  >
-    <rect x="3" y="3" width="18" height="18" rx="4" />
-    <path d="M9 12l2 2 4-4" />
-  </svg>
+    style={{ objectFit: 'contain' }}
+  />
 );
+
 
 // Icons
 const Icons = {
@@ -103,10 +98,10 @@ export default function DashboardLayout({ children, role }) {
       {/* Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-header">
-          <Link to="/" className="sidebar-logo">
+          <div className="sidebar-logo">
             <ProductIcon size={22} className="sidebar-logo-icon" />
-            <span>InterVueX</span>
-          </Link>
+            <span style={{ color: '#fff' }}>InterVueX</span>
+          </div>
         </div>
 
         <nav className="sidebar-nav">
@@ -175,12 +170,18 @@ export default function DashboardLayout({ children, role }) {
           gap: 0.75rem;
           font-size: 1.25rem;
           font-weight: 800;
-          color: #fff;
+          color: #fff !important;
           text-decoration: none;
           letter-spacing: -0.5px;
+          cursor: default;
+        }
+
+        .sidebar-logo span {
+          color: #fff !important;
         }
 
         .sidebar-logo-icon { color: #fff; }
+
 
         .sidebar-nav {
           flex: 1;

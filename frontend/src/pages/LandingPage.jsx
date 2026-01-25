@@ -3,21 +3,16 @@ import { useEffect, useState } from 'react';
 
 // Product Icon Component
 export const ProductIcon = ({ size = 24, className = "" }) => (
-  <svg
+  <img
+    src="/logo.png"
+    alt="InterVueX Logo"
     width={size}
     height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
     className={className}
-  >
-    <rect x="3" y="3" width="18" height="18" rx="4" />
-    <path d="M9 12l2 2 4-4" />
-  </svg>
+    style={{ objectFit: 'contain' }}
+  />
 );
+
 
 // Other SVG Icons
 const Icons = {
@@ -62,6 +57,20 @@ const Icons = {
 };
 
 // Floating geometric shapes
+// Floating Brand Icon Component
+function FloatingBrandIcon() {
+  return (
+    <div className="floating-brand-icon">
+      <img
+        src="/logo.png"
+        alt="InterVueX"
+        className="brand-float-animation"
+      />
+    </div>
+  );
+}
+
+// Floating Shapes Component
 function FloatingShapes() {
   return (
     <div className="floating-shapes">
@@ -77,6 +86,7 @@ function FloatingShapes() {
     </div>
   );
 }
+
 
 export default function LandingPage() {
   const [isVisible, setIsVisible] = useState(false);
@@ -120,6 +130,7 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className="hero-section">
         <FloatingShapes />
+        <FloatingBrandIcon />
 
         <nav className="hero-nav">
           <div className="nav-logo">
