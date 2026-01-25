@@ -24,6 +24,10 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = "sqlite+aiosqlite:///./intervuex.db"
     
+    # Supabase Configuration
+    SUPABASE_URL: Optional[str] = None
+    SUPABASE_SERVICE_ROLE_KEY: Optional[str] = None
+
     # Security
     SECRET_KEY: str = "your-secret-key-change-in-production"
     
@@ -33,6 +37,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = True
+        extra = "allow"
 
 
 settings = Settings()

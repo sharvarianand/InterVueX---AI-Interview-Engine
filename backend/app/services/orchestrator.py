@@ -28,7 +28,7 @@ from app.services.question_generator import QuestionGenerator
 from app.services.memory_engine import MemoryEngine
 from app.services.evaluation_engine import EvaluationEngine
 from app.services.pressure_engine import PressureEngine
-from app.api.endpoints.report import store_report
+from app.services.supabase_service import SupabaseService
 
 
 class InterviewOrchestrator:
@@ -44,6 +44,8 @@ class InterviewOrchestrator:
         self.project_context: Optional[dict] = None
         self.current_question: Optional[QuestionResponse] = None
         self.video_signals: List[VideoSignal] = []
+        self.user_id: Optional[str] = None
+        self.sequence_number: int = 0
         
         # Composable AI Blocks
         self.project_analyzer = ProjectAnalyzer()
@@ -57,13 +59,14 @@ class InterviewOrchestrator:
         self,
         mode: InterviewMode,
         persona: PersonaType,
+        user_id: str,
         github_url: Optional[str] = None,
         deployment_url: Optional[str] = None,
     ) -> InterviewStartResponse:
         """Initialize a new interview session."""
-        self.session_id = str(uuid.uuid4())
         self.mode = mode
         self.persona = persona
+        self.user_id = user_id
 
         # Initialize persona behavior
         self.persona_engine.load_persona(persona)
@@ -85,15 +88,28 @@ class InterviewOrchestrator:
             memory=self.memory_engine.get_state(),
             pressure_level=self.pressure_engine.get_level(),
         )
+
+        # Create session in Supabase
+        supabase_session = await SupabaseService.create_session(
+            user_id=self.user_id,
+            mode=mode.value,
+            persona=persona.value,
+            github_url=github_url,
+            deployment_url=deployment_url,
+            project_summary=project_summary
+        )
+        self.session_id = supabase_session.get("id")
+
         self.current_question = first_question
         self.memory_engine.record_question(first_question)
-
-        return InterviewStartResponse(
+        self.sequence_number += 1
+        
+        # Record first question in Supabase
+        await SupabaseService.record_conversation(
             session_id=self.session_id,
-            mode=mode,
-            persona=persona,
-            project_summary=project_summary,
-            first_question=first_question.question,
+            sequence_number=self.sequence_number,
+            question_text=first_question.question,
+            question_intent=first_question.intent
         )
 
     async def process_answer(self, answer: str) -> QuestionResponse:
@@ -101,13 +117,20 @@ class InterviewOrchestrator:
         # Record the answer
         self.memory_engine.record_answer(answer)
 
-        # Evaluate the answer
         evaluation = await self.evaluation_engine.evaluate_answer(
             question=self.current_question,
             answer=answer,
             project_context=self.project_context,
         )
         self.memory_engine.record_evaluation(evaluation)
+
+        # Update Supabase with answer and evaluation
+        await SupabaseService.update_last_conversation_answer(
+            session_id=self.session_id,
+            answer_text=answer,
+            evaluation_score=evaluation.score,
+            evaluation_feedback=evaluation.feedback
+        )
 
         # Adjust pressure based on performance
         self.pressure_engine.adjust(evaluation)
@@ -123,6 +146,15 @@ class InterviewOrchestrator:
         )
         self.current_question = next_question
         self.memory_engine.record_question(next_question)
+        self.sequence_number += 1
+
+        # Record next question in Supabase
+        await SupabaseService.record_conversation(
+            session_id=self.session_id,
+            sequence_number=self.sequence_number,
+            question_text=next_question.question,
+            question_intent=next_question.intent
+        )
 
         return next_question
 
@@ -143,11 +175,14 @@ class InterviewOrchestrator:
             video_signals=self.video_signals,
         )
         
-        # Store the report
-        store_report(self.session_id, report)
+        # Store the report in Supabase
+        await SupabaseService.store_report(self.session_id, self.user_id, report)
+        
+        # Update session status
+        await SupabaseService.update_session_status(self.session_id, "completed")
 
         return InterviewEndResponse(
             session_id=self.session_id,
             report_id=self.session_id,
-            message="Interview completed. Report generated.",
+            message="Interview completed. Report generated and saved.",
         )

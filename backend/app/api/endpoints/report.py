@@ -1,23 +1,27 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from typing import List
 from app.models.schemas import ReportResponse
+from app.services.supabase_service import SupabaseService
 
 router = APIRouter()
 
-# In-memory report store (use DB in production)
-reports: dict = {}
 
-
-@router.get("/{session_id}", response_model=ReportResponse)
-async def get_report(session_id: str):
+@router.get("/{report_id}", response_model=ReportResponse)
+async def get_report(report_id: str):
     """
-    Get the evaluation report for a completed session.
+    Get the evaluation report from Supabase.
     """
-    if session_id not in reports:
+    report = await SupabaseService.get_report_by_id(report_id)
+    if not report:
         raise HTTPException(status_code=404, detail="Report not found")
     
-    return reports[session_id]
+    return report
 
 
-def store_report(session_id: str, report: ReportResponse):
-    """Store a generated report."""
-    reports[session_id] = report
+@router.get("/user/{user_id}", response_model=List[ReportResponse])
+async def get_user_reports(user_id: str):
+    """
+    Get all reports for a specific user.
+    """
+    reports = await SupabaseService.get_user_reports(user_id)
+    return reports

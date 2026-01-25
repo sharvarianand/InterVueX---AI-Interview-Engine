@@ -27,6 +27,7 @@ async def start_interview(request: InterviewStartRequest):
     session = await orchestrator.start_session(
         mode=request.mode,
         persona=request.persona,
+        user_id=request.user_id,
         github_url=request.github_url,
         deployment_url=request.deployment_url,
     )

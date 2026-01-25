@@ -17,6 +17,7 @@ class PersonaType(str, Enum):
 
 
 class InterviewStartRequest(BaseModel):
+    user_id: str
     mode: InterviewMode
     persona: PersonaType
     github_url: Optional[str] = None
