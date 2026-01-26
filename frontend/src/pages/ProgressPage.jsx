@@ -180,48 +180,49 @@ export default function ProgressPage() {
                                 </span>
                             </div>
                         </div>
-                        <ResponsiveContainer width="100%" height={280}>
-                            <LineChart data={monthlyProgress}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                                <XAxis
-                                    dataKey="month"
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }}
-                                    dy={10}
-                                />
-                                <YAxis
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }}
-                                />
-                                <Tooltip
-                                    contentStyle={{
-                                        backgroundColor: '#1C242E',
-                                        border: '1px solid rgba(255,255,255,0.1)',
-                                        borderRadius: '12px',
-                                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
-                                    }}
-                                    itemStyle={{ fontSize: '12px' }}
-                                />
-                                <Line
-                                    type="monotone"
-                                    dataKey="score"
-                                    stroke="#6366F1"
-                                    strokeWidth={3}
-                                    dot={{ r: 4, fill: '#6366F1', strokeWidth: 2, stroke: '#1C242E' }}
-                                    activeDot={{ r: 6, strokeWidth: 0 }}
-                                />
-                                <Line
-                                    type="monotone"
-                                    dataKey="interviews"
-                                    stroke="#8B5CF6"
-                                    strokeWidth={2}
-                                    strokeDasharray="5 5"
-                                    dot={false}
-                                />
-                            </LineChart>
-                        </ResponsiveContainer>
+                        <div style={{ width: '100%', height: 300 }}>
+                            <ResponsiveContainer>
+                                <LineChart data={monthlyProgress}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                                    <XAxis
+                                        dataKey="month"
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }}
+                                        dy={10}
+                                    />
+                                    <YAxis
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }}
+                                    />
+                                    <Tooltip
+                                        contentStyle={{
+                                            backgroundColor: '#1C242E',
+                                            border: '1px solid rgba(255,255,255,0.1)',
+                                            borderRadius: '12px',
+                                            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+                                        }}
+                                        itemStyle={{ fontSize: '12px' }}
+                                    />
+                                    <Line
+                                        type="monotone"
+                                        dataKey="score"
+                                        stroke="#6366F1"
+                                        strokeWidth={3}
+                                        dot={{ r: 4, fill: '#6366F1', strokeWidth: 2, stroke: '#1C242E' }}
+                                        activeDot={{ r: 6, strokeWidth: 0 }}
+                                    />
+                                    <Line
+                                        type="monotone"
+                                        dataKey="interviews"
+                                        stroke="#8B5CF6"
+                                        strokeWidth={2}
+                                        strokeDasharray="5 5"
+                                        dot={false}
+                                    />
+                                </LineChart>
+                            </ResponsiveContainer>
                     </motion.div>
 
                     {/* Score Progression This Week */}
@@ -235,44 +236,45 @@ export default function ProgressPage() {
                             <h3 className="text-lg font-display font-semibold">Score Progression This Week</h3>
                             <span className="text-xs text-white/60 bg-accent-indigo/20 px-2 py-1 rounded">This Week</span>
                         </div>
-                        <ResponsiveContainer width="100%" height={280}>
-                            <AreaChart data={weeklyScoreProgression}>
-                                <defs>
-                                    <linearGradient id="weeklyProgressGradient" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#6366F1" stopOpacity={0.4} />
-                                        <stop offset="95%" stopColor="#6366F1" stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                                <XAxis
-                                    dataKey="day"
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 12 }}
-                                    dy={10}
-                                />
-                                <YAxis
-                                    domain={[0, 100]}
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 12 }}
-                                />
-                                <Tooltip
-                                    contentStyle={{
-                                        backgroundColor: '#1C242E',
-                                        border: '1px solid rgba(255,255,255,0.1)',
-                                        borderRadius: '12px'
-                                    }}
-                                />
-                                <Area
-                                    type="monotone"
-                                    dataKey="score"
-                                    stroke="#6366F1"
-                                    fill="url(#weeklyProgressGradient)"
-                                    strokeWidth={3}
-                                />
-                            </AreaChart>
-                        </ResponsiveContainer>
+                        <div style={{ width: '100%', height: 300 }}>
+                            <ResponsiveContainer>
+                                <AreaChart data={weeklyScoreProgression}>
+                                    <defs>
+                                        <linearGradient id="weeklyProgressGradient" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#6366F1" stopOpacity={0.4} />
+                                            <stop offset="95%" stopColor="#6366F1" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                                    <XAxis
+                                        dataKey="day"
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 12 }}
+                                        dy={10}
+                                    />
+                                    <YAxis
+                                        domain={[0, 100]}
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 12 }}
+                                    />
+                                    <Tooltip
+                                        contentStyle={{
+                                            backgroundColor: '#1C242E',
+                                            border: '1px solid rgba(255,255,255,0.1)',
+                                            borderRadius: '12px'
+                                        }}
+                                    />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="score"
+                                        stroke="#6366F1"
+                                        fill="url(#weeklyProgressGradient)"
+                                        strokeWidth={3}
+                                    />
+                                </AreaChart>
+                            </ResponsiveContainer>
                     </motion.div>
                 </div>
 
@@ -288,44 +290,45 @@ export default function ProgressPage() {
                             <h3 className="text-lg font-display font-semibold">Current Skill Map</h3>
                             <span className="text-xs text-white/60 bg-accent-indigo/20 px-2 py-1 rounded">Performance Matrix</span>
                         </div>
-                        <ResponsiveContainer width="100%" height={280}>
-                            <RadarChart data={weeklySkillMap} cx="50%" cy="50%" outerRadius="80%">
-                                <PolarGrid stroke="rgba(255,255,255,0.1)" />
-                                <PolarAngleAxis
-                                    dataKey="skill"
-                                    tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 11 }}
-                                />
-                                <PolarRadiusAxis
-                                    angle={30}
-                                    domain={[0, 100]}
-                                    tick={false}
-                                />
-                                <Radar
-                                    name="Current Score"
-                                    dataKey="score"
-                                    stroke="#8B5CF6"
-                                    fill="#8B5CF6"
-                                    fillOpacity={0.3}
-                                    strokeWidth={3}
-                                />
-                                <Radar
-                                    name="Previous Week"
-                                    dataKey="previousWeek"
-                                    stroke="#6366F1"
-                                    fill="#6366F1"
-                                    fillOpacity={0.1}
-                                    strokeWidth={2}
-                                    strokeDasharray="4 4"
-                                />
-                                <Tooltip
-                                    contentStyle={{
-                                        backgroundColor: '#1C242E',
-                                        border: '1px solid rgba(255,255,255,0.1)',
-                                        borderRadius: '12px'
-                                    }}
-                                />
-                            </RadarChart>
-                        </ResponsiveContainer>
+                        <div style={{ width: '100%', height: 300 }}>
+                            <ResponsiveContainer>
+                                <RadarChart data={weeklySkillMap} cx="50%" cy="50%" outerRadius="80%">
+                                    <PolarGrid stroke="rgba(255,255,255,0.1)" />
+                                    <PolarAngleAxis
+                                        dataKey="skill"
+                                        tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 11 }}
+                                    />
+                                    <PolarRadiusAxis
+                                        angle={30}
+                                        domain={[0, 100]}
+                                        tick={false}
+                                    />
+                                    <Radar
+                                        name="Current Score"
+                                        dataKey="score"
+                                        stroke="#8B5CF6"
+                                        fill="#8B5CF6"
+                                        fillOpacity={0.3}
+                                        strokeWidth={3}
+                                    />
+                                    <Radar
+                                        name="Previous Week"
+                                        dataKey="previousWeek"
+                                        stroke="#6366F1"
+                                        fill="#6366F1"
+                                        fillOpacity={0.1}
+                                        strokeWidth={2}
+                                        strokeDasharray="4 4"
+                                    />
+                                    <Tooltip
+                                        contentStyle={{
+                                            backgroundColor: '#1C242E',
+                                            border: '1px solid rgba(255,255,255,0.1)',
+                                            borderRadius: '12px'
+                                        }}
+                                    />
+                                </RadarChart>
+                            </ResponsiveContainer>
                     </motion.div>
 
                     {/* Weekly Activity Heatmap style BarChart */}
@@ -339,43 +342,44 @@ export default function ProgressPage() {
                             <h3 className="text-lg font-display font-semibold">Activity Intensity</h3>
                             <TrendingUp className="w-5 h-5 text-emerald-400" />
                         </div>
-                        <ResponsiveContainer width="100%" height={280}>
-                            <BarChart data={weeklyActivity}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                                <XAxis
-                                    dataKey="day"
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 12 }}
-                                    dy={10}
-                                />
-                                <YAxis
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 12 }}
-                                />
-                                <Tooltip
-                                    cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                                    contentStyle={{
-                                        backgroundColor: '#1C242E',
-                                        border: '1px solid rgba(255,255,255,0.1)',
-                                        borderRadius: '12px'
-                                    }}
-                                    formatter={(value) => [`${value} min`, 'Practice Time']}
-                                />
-                                <Bar
-                                    dataKey="minutes"
-                                    radius={[6, 6, 0, 0]}
-                                >
-                                    {weeklyActivity.map((entry, index) => (
-                                        <Cell
-                                            key={`cell-${index}`}
-                                            fill={entry.minutes > 60 ? '#8B5CF6' : entry.minutes > 30 ? '#6366F1' : '#4F46E5'}
-                                        />
-                                    ))}
-                                </Bar>
-                            </BarChart>
-                        </ResponsiveContainer>
+                        <div style={{ width: '100%', height: 300 }}>
+                            <ResponsiveContainer>
+                                <BarChart data={weeklyActivity}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                                    <XAxis
+                                        dataKey="day"
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 12 }}
+                                        dy={10}
+                                    />
+                                    <YAxis
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 12 }}
+                                    />
+                                    <Tooltip
+                                        cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                                        contentStyle={{
+                                            backgroundColor: '#1C242E',
+                                            border: '1px solid rgba(255,255,255,0.1)',
+                                            borderRadius: '12px'
+                                        }}
+                                        formatter={(value) => [`${value} min`, 'Practice Time']}
+                                    />
+                                    <Bar
+                                        dataKey="minutes"
+                                        radius={[6, 6, 0, 0]}
+                                    >
+                                        {weeklyActivity.map((entry, index) => (
+                                            <Cell
+                                                key={`cell-${index}`}
+                                                fill={entry.minutes > 60 ? '#8B5CF6' : entry.minutes > 30 ? '#6366F1' : '#4F46E5'}
+                                            />
+                                        ))}
+                                    </Bar>
+                                </BarChart>
+                            </ResponsiveContainer>
                     </motion.div>
                 </div>
 
@@ -547,38 +551,39 @@ export default function ProgressPage() {
                         className="glass-card p-6"
                     >
                         <h3 className="text-lg font-display font-semibold mb-6">Skill Distribution</h3>
-                        <ResponsiveContainer width="100%" height={300}>
-                            <PieChart>
-                                <Pie
-                                    data={currentSkills}
-                                    cx="50%"
-                                    cy="50%"
-                                    innerRadius={60}
-                                    outerRadius={80}
-                                    paddingAngle={5}
-                                    dataKey="score"
-                                >
-                                    {currentSkills.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={['#6366F1', '#8B5CF6', '#EC4899', '#3B82F6', '#10B981', '#F59E0B'][index % 6]} />
-                                    ))}
-                                </Pie>
-                                <Tooltip
-                                    contentStyle={{
-                                        backgroundColor: '#1C242E',
-                                        border: '1px solid rgba(255,255,255,0.1)',
-                                        borderRadius: '12px'
-                                    }}
-                                />
-                            </PieChart>
-                        </ResponsiveContainer>
-                        <div className="mt-4 grid grid-cols-2 gap-2">
-                            {currentSkills.map((s, i) => (
-                                <div key={i} className="flex items-center gap-2 text-xs text-white/50">
-                                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: ['#6366F1', '#8B5CF6', '#EC4899', '#3B82F6', '#10B981', '#F59E0B'][i % 6] }} />
-                                    {s.skill}
-                                </div>
-                            ))}
-                        </div>
+                        <div style={{ width: '100%', height: 300 }}>
+                            <ResponsiveContainer>
+                                <PieChart>
+                                    <Pie
+                                        data={currentSkills}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={60}
+                                        outerRadius={80}
+                                        paddingAngle={5}
+                                        dataKey="score"
+                                    >
+                                        {currentSkills.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={['#6366F1', '#8B5CF6', '#EC4899', '#3B82F6', '#10B981', '#F59E0B'][index % 6]} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip
+                                        contentStyle={{
+                                            backgroundColor: '#1C242E',
+                                            border: '1px solid rgba(255,255,255,0.1)',
+                                            borderRadius: '12px'
+                                        }}
+                                    />
+                                </PieChart>
+                            </ResponsiveContainer>
+                            <div className="mt-4 grid grid-cols-2 gap-2">
+                                {currentSkills.map((s, i) => (
+                                    <div key={i} className="flex items-center gap-2 text-xs text-white/50">
+                                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: ['#6366F1', '#8B5CF6', '#EC4899', '#3B82F6', '#10B981', '#F59E0B'][i % 6] }} />
+                                        {s.skill}
+                                    </div>
+                                ))}
+                            </div>
                     </motion.div>
 
                     {/* AI Insights (Occupying 2/3 now) */}
