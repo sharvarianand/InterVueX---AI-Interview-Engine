@@ -135,7 +135,8 @@ class InterviewOrchestrator:
             cv_metadata=self.cv_data
         )
 
-        self.session_id = supabase_session.get("id")
+        # Establish session ID (Fallback to UUID if Supabase fails)
+        self.session_id = supabase_session.get("id") or str(uuid.uuid4())
 
         self.current_question = first_question
         self.memory_engine.record_question(first_question)

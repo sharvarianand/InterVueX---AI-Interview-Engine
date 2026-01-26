@@ -636,12 +636,14 @@ export default function StudentInterview() {
         }
     }, [step]);
 
+    // Final cleanup on unmount only
     useEffect(() => {
         return () => {
-            stopCamera();
-            stopListening();
+            if (streamRef.current) {
+                streamRef.current.getTracks().forEach(track => track.stop());
+            }
         };
-    }, [stopCamera, stopListening]);
+    }, []); // Empty dependency array ensures this only runs on unmount
 
     // Proctoring signals (simplified - no eye tracking)
     useEffect(() => {

@@ -76,18 +76,15 @@ async def start_interview(request: InterviewStartRequest):
         cv_raw = await SupabaseService.get_cv(request.cv_id)
         
         if cv_raw and cv_raw.get('content'):
-            print(f"[INTERVIEW] CV found, parsing content...")
-            parser = CVParser()
-            
-            # Parse CV to extract structured data
-            cv_data = await parser.parse_with_ai(cv_raw['content'])
-            
-            print(f"[INTERVIEW] CV parsed successfully!")
-            print(f"[INTERVIEW] Skills found: {list(cv_data.get('skills', {}).keys())}")
-            print(f"[INTERVIEW] Projects found: {len(cv_data.get('projects', []))}")
-            
-            if cv_data.get('ai_analysis'):
-                print(f"[INTERVIEW] AI Analysis: {cv_data['ai_analysis'].get('specialization', 'N/A')}")
+            try:
+                print(f"[INTERVIEW] CV found, parsing content...")
+                parser = CVParser()
+                # Parse CV to extract structured data
+                cv_data = await parser.parse_with_ai(cv_raw['content'])
+                print(f"[INTERVIEW] CV parsed successfully!")
+            except Exception as e:
+                print(f"[INTERVIEW] Warning: CV parsing failed: {e}. Proceeding without personalization.")
+                cv_data = None
         else:
             print(f"[INTERVIEW] CV not found or empty")
 
@@ -114,7 +111,14 @@ async def submit_answer(session_id: str, request: AnswerRequest):
     Uses specialized AI agents for question generation.
     """
     if session_id not in sessions:
-        raise HTTPException(status_code=404, detail="Session not found")
+        print(f"[INTERVIEW] Error: Session {session_id} not found in memory.")
+        if session_id == "mock-session":
+            return QuestionResponse(
+                question="We are in fallback mode. How would you handle a production outage in a microservices environment?",
+                focus="reliability",
+                difficulty="medium"
+            )
+        raise HTTPException(status_code=404, detail=f"Session {session_id} not found. The backend may have restarted.")
     
     orchestrator = sessions[session_id]
     
@@ -130,6 +134,9 @@ async def receive_video_signals(session_id: str, request: VideoSignalsRequest):
     Used for anti-cheat detection and adaptive questioning.
     """
     if session_id not in sessions:
+        # Don't spam 404 for video signals if in mock mode
+        if session_id == "mock-session":
+            return {"status": "mock signals received", "suspicious_detected": [], "attention_level": 1.0}
         raise HTTPException(status_code=404, detail="Session not found")
     
     orchestrator = sessions[session_id]
