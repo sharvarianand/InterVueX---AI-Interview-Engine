@@ -43,8 +43,10 @@ export default {
     cors: {
         origin: [
             'https://inter-vue-x-ai-interview-engine.vercel.app',
+            'https://inter-vue-x.vercel.app',
             'https://intervuex.com',
-            'http://localhost:5173'
+            'http://localhost:5173',
+            /\.vercel\.app$/ // Allow all Vercel preview deployments
         ],
         credentials: true,
     },

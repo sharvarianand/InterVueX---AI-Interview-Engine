@@ -10,23 +10,69 @@ const __dirname = path.dirname(__filename);
 
 export class CVService {
     /**
-     * Extract text content from PDF file
+     * Extract text content from PDF buffer
      */
-    async extractFromPDF(filePath) {
+    async extractFromPDFBuffer(dataBuffer) {
         try {
-            // For PDF parsing, we'll use a simple approach
+            // Import pdf-parse safely
             const pdfParseModule = await import('pdf-parse').catch(() => null);
             const pdfParse = pdfParseModule?.default || pdfParseModule;
 
             if (pdfParse && typeof pdfParse === 'function') {
-                const dataBuffer = await fs.readFile(filePath);
                 const data = await pdfParse(dataBuffer);
                 return this.parseCVContent(data.text);
             } else {
-                // Fallback: return basic structure
-                const content = await fs.readFile(filePath, 'utf-8').catch(() => '');
-                return this.parseCVContent(content || 'PDF content extraction requires pdf-parse package');
+                return this.parseCVContent('Error: PDF processing library (pdf-parse) not correctly loaded.');
             }
+        } catch (error) {
+            console.error('PDF extraction error:', error);
+            // Attempt raw text fallback for text-heavy PDFs
+            return this.parseCVContent(dataBuffer.toString('utf-8').replace(/[^\x20-\x7E\n\r\t]/g, ' '));
+        }
+    }
+
+    /**
+     * Extract text content from DOCX buffer
+     */
+    async extractFromDOCXBuffer(dataBuffer) {
+        try {
+            const mammothModule = await import('mammoth').catch(() => null);
+            const mammoth = mammothModule?.default || mammothModule;
+
+            if (mammoth && typeof mammoth.extractRawText === 'function') {
+                const result = await mammoth.extractRawText({ buffer: dataBuffer });
+                return this.parseCVContent(result.value);
+            } else {
+                return this.parseCVContent('Error: DOCX processing library (mammoth) not correctly loaded.');
+            }
+        } catch (error) {
+            console.error('DOCX extraction error:', error);
+            return this.parseCVContent('Error: Failed to extract DOCX content.');
+        }
+    }
+
+    /**
+     * Process CV Buffer
+     */
+    async processCVBuffer(buffer, fileName) {
+        const ext = path.extname(fileName).toLowerCase();
+
+        if (ext === '.pdf') {
+            return await this.extractFromPDFBuffer(buffer);
+        } else if (ext === '.docx') {
+            return await this.extractFromDOCXBuffer(buffer);
+        } else {
+            throw new Error('Unsupported file format. Please upload PDF or DOCX.');
+        }
+    }
+
+    /**
+     * Extract text content from PDF file (Legacy File Path Method)
+     */
+    async extractFromPDF(filePath) {
+        try {
+            const buffer = await fs.readFile(filePath);
+            return this.extractFromPDFBuffer(buffer);
         } catch (error) {
             console.error('PDF extraction error:', error);
             throw new Error(`Failed to extract PDF content: ${error.message}`);
@@ -34,20 +80,12 @@ export class CVService {
     }
 
     /**
-     * Extract text content from DOCX file
+     * Extract text content from DOCX file (Legacy File Path Method)
      */
     async extractFromDOCX(filePath) {
         try {
-            // For DOCX parsing, use mammoth
-            const mammothModule = await import('mammoth').catch(() => null);
-            const mammoth = mammothModule?.default || mammothModule;
-
-            if (mammoth && typeof mammoth.extractRawText === 'function') {
-                const result = await mammoth.extractRawText({ path: filePath });
-                return this.parseCVContent(result.value);
-            } else {
-                return this.parseCVContent('DOCX content extraction requires mammoth package');
-            }
+            const buffer = await fs.readFile(filePath);
+            return this.extractFromDOCXBuffer(buffer);
         } catch (error) {
             console.error('DOCX extraction error:', error);
             throw new Error('Failed to extract DOCX content');

@@ -14,18 +14,19 @@ const __dirname = path.dirname(__filename);
 
 // Ensure uploads directory exists
 const uploadsDir = path.join(__dirname, '../../uploads/cvs');
-fs.mkdir(uploadsDir, { recursive: true }).catch(() => {});
+fs.mkdir(uploadsDir, { recursive: true }).catch(() => { });
 
-// Configure multer for file uploads
+// Configure multer for file uploads in memory for better cross-environment support
+const storage = multer.memoryStorage();
 const upload = multer({
-    dest: uploadsDir,
+    storage: storage,
     limits: {
-        fileSize: 5 * 1024 * 1024, // 5MB limit
+        fileSize: 10 * 1024 * 1024, // Increased to 10MB limit
     },
     fileFilter: (req, file, cb) => {
         const allowedExtensions = ['.pdf', '.docx'];
         const ext = path.extname(file.originalname).toLowerCase();
-        
+
         if (allowedExtensions.includes(ext)) {
             cb(null, true);
         } else {
@@ -44,15 +45,14 @@ router.post('/upload', upload.single('cv'), async (req, res, next) => {
             });
         }
 
+        console.log(`Processing CV upload: ${req.file.originalname} (${req.file.size} bytes)`);
+
         const userId = req.auth?.userId || 'anonymous';
-        const filePath = req.file.path;
         const fileName = req.file.originalname;
+        const fileContent = req.file.buffer;
 
-        // Process CV
-        const extractedData = await cvService.processCV(filePath, fileName);
-
-        // Clean up uploaded file after processing
-        await fs.unlink(filePath).catch(() => {});
+        // Process CV using specialized service
+        const extractedData = await cvService.processCVBuffer(fileContent, fileName);
 
         res.status(200).json({
             success: true,
@@ -63,11 +63,11 @@ router.post('/upload', upload.single('cv'), async (req, res, next) => {
             }
         });
     } catch (error) {
-        // Clean up file on error
-        if (req.file?.path) {
-            await fs.unlink(req.file.path).catch(() => {});
-        }
-        next(error);
+        console.error('CV Upload Route Error:', error);
+        res.status(500).json({
+            error: 'Analysis Error',
+            message: `Failed to process CV: ${error.message}`
+        });
     }
 });
 
