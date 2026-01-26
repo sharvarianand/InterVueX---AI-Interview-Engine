@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Suspense, lazy, useEffect } from 'react';
 import { useAuth } from '@clerk/clerk-react';
-import { setTokenGetter } from './services/api';
+import { setTokenGetter, healthCheck } from './services/api';
 import LoadingScreen from './components/common/LoadingScreen';
 
 // Lazy load pages for better performance
@@ -42,6 +42,12 @@ const ProtectedRoute = ({ children }) => {
 
 function App() {
   const { getToken, isLoaded } = useAuth();
+
+  // Warm up backend on app load
+  useEffect(() => {
+    // Fire and forget health check to wake up the backend
+    healthCheck().catch(() => console.log('Backend warmup initiated'));
+  }, []);
 
   // Initialize token getter for API calls
   useEffect(() => {
