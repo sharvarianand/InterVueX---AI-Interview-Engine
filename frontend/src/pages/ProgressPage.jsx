@@ -223,6 +223,7 @@ export default function ProgressPage() {
                                     />
                                 </LineChart>
                             </ResponsiveContainer>
+                        </div>
                     </motion.div>
 
                     {/* Score Progression This Week */}
@@ -275,6 +276,7 @@ export default function ProgressPage() {
                                     />
                                 </AreaChart>
                             </ResponsiveContainer>
+                        </div>
                     </motion.div>
                 </div>
 
@@ -329,6 +331,7 @@ export default function ProgressPage() {
                                     />
                                 </RadarChart>
                             </ResponsiveContainer>
+                        </div>
                     </motion.div>
 
                     {/* Weekly Activity Heatmap style BarChart */}
@@ -380,6 +383,7 @@ export default function ProgressPage() {
                                     </Bar>
                                 </BarChart>
                             </ResponsiveContainer>
+                        </div>
                     </motion.div>
                 </div>
 
@@ -576,14 +580,15 @@ export default function ProgressPage() {
                                     />
                                 </PieChart>
                             </ResponsiveContainer>
-                            <div className="mt-4 grid grid-cols-2 gap-2">
-                                {currentSkills.map((s, i) => (
-                                    <div key={i} className="flex items-center gap-2 text-xs text-white/50">
-                                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: ['#6366F1', '#8B5CF6', '#EC4899', '#3B82F6', '#10B981', '#F59E0B'][i % 6] }} />
-                                        {s.skill}
-                                    </div>
-                                ))}
-                            </div>
+                        </div>
+                        <div className="mt-4 grid grid-cols-2 gap-2">
+                            {currentSkills.map((s, i) => (
+                                <div key={i} className="flex items-center gap-2 text-xs text-white/50">
+                                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: ['#6366F1', '#8B5CF6', '#EC4899', '#3B82F6', '#10B981', '#F59E0B'][i % 6] }} />
+                                    {s.skill}
+                                </div>
+                            ))}
+                        </div>
                     </motion.div>
 
                     {/* AI Insights (Occupying 2/3 now) */}

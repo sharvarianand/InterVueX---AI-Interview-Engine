@@ -57,7 +57,6 @@ export default function TechStackPage() {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [selectedAnswer, setSelectedAnswer] = useState(null);
     const [showResult, setShowResult] = useState(false);
-    const [userAnswers, setUserAnswers] = useState([]);
     const [score, setScore] = useState({ correct: 0, total: 0 });
     const [evaluationComplete, setEvaluationComplete] = useState(false);
 
@@ -91,7 +90,6 @@ export default function TechStackPage() {
             setQuestions(response.questions || []);
             setCurrentQuestionIndex(0);
             setScore({ correct: 0, total: 0 });
-            setUserAnswers([]);
             setSelectedAnswer(null);
             setShowResult(false);
             setEvaluationComplete(false);
@@ -113,14 +111,6 @@ export default function TechStackPage() {
 
         const currentQ = questions[currentQuestionIndex];
         const isCorrect = selectedAnswer === currentQ.correctAnswer;
-
-        // Save user's answer
-        setUserAnswers(prev => [...prev, {
-            questionId: currentQ.id,
-            selectedAnswer,
-            correctAnswer: currentQ.correctAnswer,
-            isCorrect
-        }]);
 
         // Update score
         setScore(prev => ({
@@ -152,7 +142,6 @@ export default function TechStackPage() {
         setShowResult(false);
         setScore({ correct: 0, total: 0 });
         setQuestions([]);
-        setUserAnswers([]);
     };
 
     const handleEarlyExit = () => {

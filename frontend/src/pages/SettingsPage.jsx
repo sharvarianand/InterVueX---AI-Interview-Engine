@@ -71,11 +71,21 @@ export default function SettingsPage() {
     // Update settings when user data changes
     useEffect(() => {
         if (user) {
-            setSettings(prev => ({
-                ...prev,
-                name: user.fullName || user.firstName || prev.name,
-                email: user.primaryEmailAddress?.emailAddress || prev.email,
-            }));
+            // Sync user data to settings form
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+            setSettings(prev => {
+                const newName = user.fullName || user.firstName || prev.name;
+                const newEmail = user.primaryEmailAddress?.emailAddress || prev.email;
+
+                // Only update if changed to avoid loops (though dependency array protects us)
+                if (prev.name === newName && prev.email === newEmail) return prev;
+
+                return {
+                    ...prev,
+                    name: newName,
+                    email: newEmail,
+                };
+            });
         }
     }, [user]);
 
@@ -260,8 +270,8 @@ export default function SettingsPage() {
                     <button
                         onClick={() => handleSettingChange('theme', 'dark')}
                         className={`p-4 rounded-xl flex items-center gap-3 transition-all ${settings.theme === 'dark'
-                                ? 'bg-accent-indigo/20 border-2 border-accent-indigo'
-                                : 'glass-card border-2 border-transparent'
+                            ? 'bg-accent-indigo/20 border-2 border-accent-indigo'
+                            : 'glass-card border-2 border-transparent'
                             }`}
                     >
                         <Moon className="w-5 h-5" />
@@ -270,8 +280,8 @@ export default function SettingsPage() {
                     <button
                         onClick={() => handleSettingChange('theme', 'light')}
                         className={`p-4 rounded-xl flex items-center gap-3 transition-all ${settings.theme === 'light'
-                                ? 'bg-accent-indigo/20 border-2 border-accent-indigo'
-                                : 'glass-card border-2 border-transparent'
+                            ? 'bg-accent-indigo/20 border-2 border-accent-indigo'
+                            : 'glass-card border-2 border-transparent'
                             }`}
                     >
                         <Sun className="w-5 h-5" />
@@ -449,8 +459,8 @@ export default function SettingsPage() {
                                     key={section.id}
                                     onClick={() => setActiveSection(section.id)}
                                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all ${activeSection === section.id
-                                            ? 'bg-gradient-to-r from-accent-indigo/20 to-transparent text-white'
-                                            : 'text-white/60 hover:text-white hover:bg-glass-light'
+                                        ? 'bg-gradient-to-r from-accent-indigo/20 to-transparent text-white'
+                                        : 'text-white/60 hover:text-white hover:bg-glass-light'
                                         }`}
                                 >
                                     <section.icon className={`w-5 h-5 ${activeSection === section.id ? 'text-accent-indigo' : ''}`} />
