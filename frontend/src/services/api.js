@@ -1,9 +1,19 @@
 // API Service for InterVueX
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+const getApiBaseUrl = () => {
+    let url = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+    // Remove trailing slash if present to avoid double slashes
+    return url.replace(/\/$/, '');
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 // Helper for API calls
 async function apiFetch(endpoint, options = {}) {
-    const url = `${API_BASE_URL}${endpoint}`;
+    // Ensure endpoint has a leading slash
+    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    const url = `${API_BASE_URL}${cleanEndpoint}`;
+
+    console.log(`[API] Fetching: ${url}`);
 
     const defaultOptions = {
         headers: {
