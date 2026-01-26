@@ -21,8 +21,21 @@ jobs:
         run: |
           git config --global user.email "sharvaribhondekar23@gmail.com"
           git config --global user.name "sharvarianand"
-          # 1. Split the backend folder into a temporary branch
-          git subtree split --prefix backend -b hf-sync-branch
           
-          # 2. Force push that branch to Hugging Face main
-          git push --force https://user:$HF_TOKEN@huggingface.co/spaces/sharvarianand/InterVueX-Backend hf-sync-branch:main
+          # 1. Create a temporary directory for the backend content
+          mkdir ../temp_backend_deploy
+          cp -r backend/* ../temp_backend_deploy/
+          cp backend/.dockerignore ../temp_backend_deploy/ # Ensure hidden files are copied 
+          # Note: We specifically want to start FRESH to avoid history binary blobs
+          
+          # 2. Initialize new git repo in temp dir
+          cd ../temp_backend_deploy
+          git init
+          git checkout -b main
+          
+          # 3. Add all files
+          git add .
+          git commit -m "Deploy backend: ${{ github.sha }}"
+          
+          # 4. Force push to Hugging Face
+          git push --force https://user:$HF_TOKEN@huggingface.co/spaces/sharvarianand/InterVueX-Backend main
