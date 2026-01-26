@@ -204,6 +204,9 @@ export default function StudentInterview() {
     const [suspiciousEvents, setSuspiciousEvents] = useState([]);
     const [showWarning, setShowWarning] = useState(false);
     const [warningMessage, setWarningMessage] = useState('');
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const [fullscreenExitCount, setFullscreenExitCount] = useState(0);
+    const interviewContainerRef = useRef(null);
 
 
     // Audio Hooks
@@ -231,6 +234,83 @@ export default function StudentInterview() {
             streamRef.current = null;
         }
     }, []);
+
+    // Fullscreen Functions
+    const enterFullscreen = async () => {
+        try {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                await elem.requestFullscreen();
+            } else if (elem.webkitRequestFullscreen) {
+                await elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) {
+                await elem.msRequestFullscreen();
+            }
+            setIsFullscreen(true);
+            return true;
+        } catch (error) {
+            console.error('Fullscreen request failed:', error);
+            return false;
+        }
+    };
+
+    const exitFullscreen = () => {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        }
+        setIsFullscreen(false);
+    };
+
+    // Detect fullscreen exit and warn user
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            const isCurrentlyFullscreen = !!(document.fullscreenElement ||
+                document.webkitFullscreenElement ||
+                document.msFullscreenElement);
+
+            setIsFullscreen(isCurrentlyFullscreen);
+
+            // If user exits fullscreen during interview, warn and re-enter
+            if (!isCurrentlyFullscreen && step === 'interview') {
+                setFullscreenExitCount(prev => prev + 1);
+                handleSuspiciousActivity('fullscreen_exit', 'You exited fullscreen mode. This has been logged.');
+
+                // Force re-enter fullscreen after warning
+                setTimeout(() => {
+                    enterFullscreen();
+                }, 1000);
+            }
+        };
+
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+        document.addEventListener('msfullscreenchange', handleFullscreenChange);
+
+        return () => {
+            document.removeEventListener('fullscreenchange', handleFullscreenChange);
+            document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+            document.removeEventListener('msfullscreenchange', handleFullscreenChange);
+        };
+    }, [step, handleSuspiciousActivity]);
+
+    // Prevent Escape key from exiting fullscreen during interview
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (step === 'interview' && e.key === 'Escape') {
+                e.preventDefault();
+                e.stopPropagation();
+                handleSuspiciousActivity('escape_key', 'Escape key pressed. You cannot exit during the interview.');
+                return false;
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown, true);
+        return () => document.removeEventListener('keydown', handleKeyDown, true);
+    }, [step, handleSuspiciousActivity]);
 
     const initCamera = async () => {
         if (cameraReady) return true;
@@ -308,6 +388,10 @@ export default function StudentInterview() {
                 difficulty: 'medium',
             });
 
+            // Enter fullscreen mode
+            setStartStage('Entering fullscreen mode...');
+            await enterFullscreen();
+
             // Short delay for smooth transition
             setStartStage('Ready. Entering interview room...');
             setTimeout(() => {
@@ -317,12 +401,19 @@ export default function StudentInterview() {
 
         } catch (error) {
             console.error('Failed to start interview:', error);
+            console.error('Error details:', error.message, error.stack);
+
+            // Show error to user but keep camera on
+            alert(`Interview API Error: ${error.message}\n\nUsing fallback mode. Camera will stay active.`);
+
             setSessionId('mock-session');
             setCurrentQuestion({
                 question: "Tell me about your technical background. What technologies have you worked with recently and what projects have you built?",
                 focus: 'overview',
                 difficulty: 'medium',
             });
+
+            // Don't stop camera - keep it running
             setStep('interview');
             setIsStarting(false);
         }
@@ -332,6 +423,9 @@ export default function StudentInterview() {
     const endInterview = async () => {
         stopCamera();
         stopListening();
+
+        // Exit fullscreen when interview ends
+        exitFullscreen();
 
         try {
             await interviewAPI.end(sessionId);
@@ -1010,6 +1104,10 @@ export default function StudentInterview() {
                         <div className="camera-status">
                             <div className="recording-indicator" />
                             <span>Recording • {personCount === 0 ? 'Detecting...' : personCount === 1 ? '1 Person ✓' : `${personCount} People ⚠️`}</span>
+                            <span className="fullscreen-status">
+                                {isFullscreen ? '🖥️ Fullscreen' : '⚠️ Not Fullscreen'}
+                                {fullscreenExitCount > 0 && <span className="exit-count"> ({fullscreenExitCount} exits)</span>}
+                            </span>
                         </div>
                     </div>
 
@@ -1246,6 +1344,48 @@ export default function StudentInterview() {
           background: var(--color-error);
           border-radius: 50%;
           animation: pulse 2s infinite;
+        }
+
+        .fullscreen-status {
+          margin-left: 1rem;
+          padding-left: 1rem;
+          border-left: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .exit-count {
+          color: var(--color-error);
+          font-weight: 600;
+        }
+
+        .fullscreen-warning-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0,0,0,0.9);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 9999;
+          color: white;
+          flex-direction: column;
+          gap: 1rem;
+        }
+
+        .fullscreen-warning-overlay h2 {
+          font-size: 2rem;
+          color: var(--color-error);
+        }
+
+        .fullscreen-warning-overlay button {
+          padding: 1rem 2rem;
+          background: var(--color-primary);
+          color: white;
+          border: none;
+          border-radius: var(--radius-lg);
+          font-size: 1rem;
+          cursor: pointer;
         }
 
         .camera-error {

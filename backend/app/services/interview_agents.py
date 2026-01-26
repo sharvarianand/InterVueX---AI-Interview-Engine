@@ -77,8 +77,27 @@ class BaseInterviewAgent(ABC):
         return skills
 
     async def _call_gemini(self, prompt: str, temperature: float = 0.7) -> str:
-        """Call Gemini API with the given prompt."""
+        """Call AI API (OpenRouter primary, Gemini fallback)."""
+        print(f"[AI] Attempting API call with temperature={temperature}")
+        
+        # Try OpenRouter first (more reliable)
+        if settings.OPENROUTER_API_KEY:
+            try:
+                from app.services.openrouter_client import openrouter_client
+                result = await openrouter_client.generate_content(
+                    prompt=prompt,
+                    temperature=temperature,
+                    max_tokens=1000
+                )
+                if result:
+                    return result
+                print("[AI] OpenRouter failed, trying Gemini...")
+            except Exception as e:
+                print(f"[AI] OpenRouter error: {e}, trying Gemini...")
+        
+        # Fallback to Gemini
         if not settings.GEMINI_API_KEY:
+            print("[AI] ERROR: No API key configured!")
             return None
             
         try:
@@ -87,17 +106,22 @@ class BaseInterviewAgent(ABC):
             genai.configure(api_key=settings.GEMINI_API_KEY)
             model = genai.GenerativeModel("gemini-2.0-flash")
             
+            print(f"[GEMINI] Sending request to Gemini 2.0 Flash...")
             response = model.generate_content(
                 prompt,
                 generation_config=genai.GenerationConfig(
                     temperature=temperature,
-                    max_output_tokens=800,
+                    max_output_tokens=1000,
                 )
             )
             
-            return response.text.strip()
+            result = response.text.strip()
+            print(f"[GEMINI] SUCCESS - Got response of length: {len(result)}")
+            return result
         except Exception as e:
-            print(f"Gemini API error: {e}")
+            print(f"[GEMINI] ERROR: {type(e).__name__}: {e}")
+            import traceback
+            traceback.print_exc()
             return None
 
 
@@ -123,14 +147,33 @@ class TechnicalInterviewAgent(BaseInterviewAgent):
         """Generate technical interview questions based on CV and previous answers."""
         
         resume_skills = context.get("skills", {})
+        cv_data = context.get("cv", {})
         question_count = len(previous_qa)
         
-        # Build context for personalization
+        # Build context for personalization from CV
         skills_str = ", ".join([
             *resume_skills.get("programming_languages", []),
             *resume_skills.get("frameworks", []),
-            *resume_skills.get("databases", [])
+            *resume_skills.get("databases", []),
+            *resume_skills.get("cloud_platforms", []),
+            *resume_skills.get("devops_tools", []),
+            *resume_skills.get("ai_ml", [])
         ])
+        
+        # Extract projects from CV
+        projects = cv_data.get("projects", []) if cv_data else []
+        projects_str = ""
+        if projects:
+            projects_str = "\n".join([f"- {p.get('name', 'Project')}: {p.get('description', '')[:100]}" for p in projects[:3]])
+        
+        # Get AI analysis if available
+        ai_analysis = cv_data.get("ai_analysis", {}) if cv_data else {}
+        focus_areas = ai_analysis.get("interview_focus_areas", [])
+        interesting_projects = ai_analysis.get("interesting_projects", [])
+        weak_areas = ai_analysis.get("potential_weak_areas", [])
+        
+        # Build list of topics already covered (to avoid repetition)
+        covered_topics = ", ".join(self.topics_covered) if self.topics_covered else "None yet"
         
         # Previous Q&A for follow-ups
         prev_qa_str = ""
@@ -149,38 +192,65 @@ Score: {last_qa.get('score', 'N/A')}
         elif pressure_level < 0.3:
             difficulty = "easy"
         
-        prompt = f"""You are a senior technical interviewer conducting a focused technical interview.
+        # Random aspect to focus on (ensures variety)
+        import random
+        focus_options = ["skills", "projects", "architecture", "debugging", "optimization", "trade-offs", "real-world-scenario"]
+        random_focus = random.choice(focus_options)
+        
+        prompt = f"""You are a senior technical interviewer conducting a personalized technical interview based on the candidate's CV.
 
-CANDIDATE PROFILE:
-- Skills: {skills_str or 'General software engineering'}
-- Interview Mode: Technical Deep Dive
-- Question Number: {question_count + 1}
+CANDIDATE PROFILE FROM CV:
+- Technical Skills: {skills_str or 'General software engineering'}
+- Experience Level: {ai_analysis.get('experience_level', 'mid')}
+- Specialization: {ai_analysis.get('specialization', 'Software Development')}
+
+CANDIDATE'S PROJECTS (from their CV):
+{projects_str or "No specific projects listed"}
+
+INTERESTING PROJECTS TO ASK ABOUT:
+{', '.join(interesting_projects) if interesting_projects else 'Ask about their most challenging project'}
+
+FOCUS AREAS FOR THIS CANDIDATE:
+{', '.join(focus_areas) if focus_areas else 'General technical knowledge'}
+
+POTENTIAL WEAK AREAS TO TEST:
+{', '.join(weak_areas) if weak_areas else 'Verify depth in claimed skills'}
+
+INTERVIEW STATE:
+- Question Number: {question_count + 1} of 5
 - Current Difficulty: {difficulty}
+- Topics Already Covered: {covered_topics}
+- Random Focus for this question: {random_focus}
 
-{f"PREVIOUS INTERACTION:{prev_qa_str}" if prev_qa_str else "This is the FIRST question. Start with a foundational technical question."}
+{f"PREVIOUS INTERACTION:{prev_qa_str}" if prev_qa_str else "This is the FIRST question. Start with a question about their strongest skill or project from their CV."}
 
-GUIDELINES:
-1. If this is a follow-up, probe deeper into the same topic based on their answer
-2. Ask about their claimed skills but verify depth of knowledge
-3. Include scenario-based questions ("What would happen if...")
-4. For coding skills, ask about edge cases and optimization
-5. Gradually increase complexity if they answer well
-6. Catch inconsistencies between claimed skills and actual knowledge
+CRITICAL INSTRUCTIONS:
+1. Generate a UNIQUE question different from previous interviews
+2. Focus on the candidate's SPECIFIC skills and projects from their CV
+3. Ask about THEIR projects, not generic theoretical questions
+4. If they claim React/Python/AWS etc, test THAT specific technology
+5. Include scenario-based questions ("In your project X, what would you do if...")
+6. For Question {question_count + 1}, focus on: {random_focus}
+7. DO NOT repeat topics already covered: {covered_topics}
 
-ANTI-PATTERN DETECTION:
-- Avoid questions with easily Google-able answers
-- Ask "Why" and "How" questions, not just "What"
-- Request specific examples from their experience
-- Ask them to compare/contrast technologies they know
+QUESTION TYPES TO VARY BETWEEN:
+- Deep dive into a project they built
+- Scenario-based problem solving
+- Architecture/design decisions they made
+- Debugging approach for their tech stack
+- Trade-offs in technologies they chose
+- Scaling challenges in their domain
 
-Generate ONE targeted technical question. Respond in JSON:
+Generate ONE personalized technical question. This MUST be different from any previous question.
+
+Respond in JSON:
 {{
-    "question": "The specific technical question",
-    "focus_area": "e.g., data_structures, system_design, coding_concepts",
+    "question": "A UNIQUE question based on THEIR specific CV skills/projects",
+    "focus_area": "e.g., {random_focus}",
     "difficulty": "{difficulty}",
     "expected_depth": "What a good answer should cover",
     "follow_up_ready": true/false,
-    "skill_being_tested": "The specific skill from their resume being tested"
+    "skill_being_tested": "The specific skill from their CV being tested"
 }}"""
 
         response = await self._call_gemini(prompt, temperature=0.7)
@@ -195,39 +265,166 @@ Generate ONE targeted technical question. Respond in JSON:
                     
                 question_data = json.loads(response.strip())
                 self.topics_covered.append(question_data.get("focus_area", "general"))
+                print(f"[AGENT] Generated question: {question_data['question'][:50]}...")
                 return question_data
-            except:
-                pass
+            except Exception as e:
+                print(f"[AGENT] JSON parsing error: {e}")
+                print(f"[AGENT] Raw response: {response[:200] if response else 'None'}")
         
-        # Fallback questions
-        fallback_questions = [
+        # Dynamic fallback questions based on CV skills
+        print(f"[AGENT] Using fallback questions. Skills: {skills_str[:50] if skills_str else 'None'}")
+        
+        # Get random skill from CV or use generic
+        skills_list = [s.strip() for s in skills_str.split(',')] if skills_str else ['programming', 'software development']
+        import random
+        random_skill = random.choice(skills_list) if skills_list else 'software development'
+        
+        # Large pool of diverse fallback questions
+        all_fallback_questions = [
+            # System Design
             {
-                "question": f"I see you have experience with {skills_str.split(',')[0] if skills_str else 'software development'}. Can you explain how you would design a scalable API for a high-traffic application?",
+                "question": f"You mentioned {random_skill} in your background. How would you design a system using {random_skill} that needs to handle millions of requests per day?",
                 "focus_area": "system_design",
-                "difficulty": "medium",
-                "expected_depth": "Discussion of REST/GraphQL, caching, load balancing",
-                "follow_up_ready": True,
+                "difficulty": difficulty,
+                "skill_being_tested": random_skill
+            },
+            {
+                "question": f"Describe the architecture of your most complex project. What were the key technical decisions you made?",
+                "focus_area": "architecture",
+                "difficulty": difficulty,
+                "skill_being_tested": "Architecture"
+            },
+            {
+                "question": f"If you had to build a real-time notification system, what technologies would you use and why?",
+                "focus_area": "system_design",
+                "difficulty": difficulty,
                 "skill_being_tested": "System Design"
             },
+            # Debugging
             {
-                "question": "Walk me through how you would debug a memory leak in a production application. What tools and techniques would you use?",
+                "question": f"Tell me about the most difficult bug you've ever had to fix. What was your debugging process?",
                 "focus_area": "debugging",
-                "difficulty": "medium",
-                "expected_depth": "Profiling tools, heap analysis, monitoring",
-                "follow_up_ready": True,
-                "skill_being_tested": "Debugging Skills"
+                "difficulty": difficulty,
+                "skill_being_tested": "Debugging"
             },
             {
-                "question": "Explain the difference between SQL and NoSQL databases. When would you choose one over the other for a new project?",
+                "question": f"How would you troubleshoot a production issue where the application is running slow but you don't know why?",
+                "focus_area": "debugging",
+                "difficulty": difficulty,
+                "skill_being_tested": "Performance Debugging"
+            },
+            # Technical Skills
+            {
+                "question": f"What makes {random_skill} your preferred technology? Compare it to alternatives you've used.",
+                "focus_area": "technical_knowledge",
+                "difficulty": difficulty,
+                "skill_being_tested": random_skill
+            },
+            {
+                "question": f"Explain how you would implement authentication and authorization in a web application. What security considerations are important?",
+                "focus_area": "security",
+                "difficulty": difficulty,
+                "skill_being_tested": "Security"
+            },
+            {
+                "question": f"What testing strategies do you follow? How do you decide what to unit test vs integration test?",
+                "focus_area": "testing",
+                "difficulty": difficulty,
+                "skill_being_tested": "Testing"
+            },
+            # Database
+            {
+                "question": f"How would you optimize a slow database query? Walk me through your approach.",
                 "focus_area": "databases",
-                "difficulty": "medium",
-                "expected_depth": "ACID vs BASE, scalability, use cases",
-                "follow_up_ready": True,
-                "skill_being_tested": "Database Knowledge"
-            }
+                "difficulty": difficulty,
+                "skill_being_tested": "Database Optimization"
+            },
+            {
+                "question": f"When would you choose a microservices architecture vs a monolithic one? What are the trade-offs?",
+                "focus_area": "architecture",
+                "difficulty": difficulty,
+                "skill_being_tested": "Architecture Decisions"
+            },
+            # Project-specific
+            {
+                "question": f"Walk me through a project you're most proud of. What challenges did you overcome?",
+                "focus_area": "projects",
+                "difficulty": difficulty,
+                "skill_being_tested": "Project Experience"
+            },
+            {
+                "question": f"If you could redesign one of your past projects from scratch, what would you do differently and why?",
+                "focus_area": "learning",
+                "difficulty": difficulty,
+                "skill_being_tested": "Self-Improvement"
+            },
+            # Coding Concepts
+            {
+                "question": f"Explain the concept of time complexity. How do you analyze the efficiency of your code?",
+                "focus_area": "algorithms",
+                "difficulty": difficulty,
+                "skill_being_tested": "Algorithm Analysis"
+            },
+            {
+                "question": f"What design patterns do you use frequently? Give me an example of when you applied one.",
+                "focus_area": "design_patterns",
+                "difficulty": difficulty,
+                "skill_being_tested": "Design Patterns"
+            },
+            {
+                "question": f"How do you handle errors and exceptions in your applications? What's your error handling strategy?",
+                "focus_area": "error_handling",
+                "difficulty": difficulty,
+                "skill_being_tested": "Error Handling"
+            },
+            # DevOps
+            {
+                "question": f"Describe your experience with CI/CD. How do you set up a deployment pipeline?",
+                "focus_area": "devops",
+                "difficulty": difficulty,
+                "skill_being_tested": "DevOps"
+            },
+            {
+                "question": f"How do you monitor your applications in production? What metrics do you track?",
+                "focus_area": "monitoring",
+                "difficulty": difficulty,
+                "skill_being_tested": "Monitoring"
+            },
+            # Concurrency
+            {
+                "question": f"Explain how you handle concurrency in your applications. What challenges have you faced?",
+                "focus_area": "concurrency",
+                "difficulty": difficulty,
+                "skill_being_tested": "Concurrency"
+            },
+            {
+                "question": f"What's the difference between synchronous and asynchronous programming? When would you use each?",
+                "focus_area": "async_programming",
+                "difficulty": difficulty,
+                "skill_being_tested": "Async Programming"
+            },
+            # API Design
+            {
+                "question": f"How do you design a RESTful API? What makes an API well-designed?",
+                "focus_area": "api_design",
+                "difficulty": difficulty,
+                "skill_being_tested": "API Design"
+            },
         ]
         
-        return fallback_questions[question_count % len(fallback_questions)]
+        # Filter out topics already covered
+        available_questions = [q for q in all_fallback_questions if q['focus_area'] not in self.topics_covered]
+        if not available_questions:
+            available_questions = all_fallback_questions  # Reset if all covered
+        
+        # Random selection
+        selected = random.choice(available_questions)
+        selected['expected_depth'] = 'Technical depth and practical examples'
+        selected['follow_up_ready'] = True
+        
+        self.topics_covered.append(selected['focus_area'])
+        print(f"[AGENT] Selected fallback: {selected['question'][:50]}...")
+        return selected
 
     async def evaluate_answer(
         self,
@@ -398,22 +595,94 @@ Generate ONE behavioral question. Respond in JSON:
                     
                 question_data = json.loads(response.strip())
                 self.competencies_tested.append(question_data.get("competency", "general"))
+                print(f"[BEHAVIORAL] Generated question: {question_data['question'][:50]}...")
                 return question_data
-            except:
-                pass
+            except Exception as e:
+                print(f"[BEHAVIORAL] JSON parsing error: {e}")
         
-        # Fallback
-        return {
-            "question": "Tell me about a time when you had to deal with a difficult team member. How did you handle the situation and what was the outcome?",
-            "competency": "conflict_resolution",
-            "follow_up_probes": [
-                "What specifically made them difficult?",
-                "How did your actions affect the team dynamic?",
-                "What would you do differently now?"
-            ],
-            "red_flags": ["Vague details", "Blames others entirely", "No specific outcome"],
-            "green_flags": ["Specific situation", "Takes responsibility", "Shows growth"]
-        }
+        # Dynamic fallback behavioral questions
+        import random
+        
+        all_behavioral_questions = [
+            {
+                "question": "Tell me about a time when you had to deal with a difficult team member. How did you handle the situation and what was the outcome?",
+                "competency": "conflict_resolution",
+            },
+            {
+                "question": "Describe a situation where you had to meet a tight deadline. What steps did you take to ensure you delivered on time?",
+                "competency": "time_management",
+            },
+            {
+                "question": "Give me an example of when you had to learn a new skill or technology quickly. How did you approach it?",
+                "competency": "learning_agility",
+            },
+            {
+                "question": "Tell me about a time when you failed at something. What did you learn from that experience?",
+                "competency": "adaptability",
+            },
+            {
+                "question": "Describe a situation where you had to convince others to adopt your idea or approach. How did you do it?",
+                "competency": "leadership",
+            },
+            {
+                "question": "Tell me about a time when you had to work with someone whose communication style was very different from yours.",
+                "competency": "communication",
+            },
+            {
+                "question": "Give me an example of when you took initiative on a project without being asked.",
+                "competency": "initiative",
+            },
+            {
+                "question": "Describe a situation where you had to prioritize multiple important tasks. How did you decide what to do first?",
+                "competency": "problem_solving",
+            },
+            {
+                "question": "Tell me about a time when you had to give difficult feedback to a colleague or teammate.",
+                "competency": "communication",
+            },
+            {
+                "question": "Describe a situation where you had to adapt to a significant change at work. How did you handle it?",
+                "competency": "adaptability",
+            },
+            {
+                "question": "Tell me about a time when you went above and beyond for a customer or user.",
+                "competency": "initiative",
+            },
+            {
+                "question": "Give me an example of when you had to make a decision with incomplete information.",
+                "competency": "problem_solving",
+            },
+            {
+                "question": "Tell me about a time when you disagreed with your manager. How did you handle it?",
+                "competency": "conflict_resolution",
+            },
+            {
+                "question": "Describe a situation where you had to motivate a team during a challenging period.",
+                "competency": "leadership",
+            },
+            {
+                "question": "Tell me about a time when you received constructive criticism. How did you respond?",
+                "competency": "learning_agility",
+            },
+        ]
+        
+        # Filter out already tested competencies
+        available_questions = [q for q in all_behavioral_questions if q['competency'] not in self.competencies_tested]
+        if not available_questions:
+            available_questions = all_behavioral_questions
+        
+        selected = random.choice(available_questions)
+        selected['follow_up_probes'] = [
+            "What specifically was your role in this situation?",
+            "What was the measurable outcome?",
+            "What would you do differently now?"
+        ]
+        selected['red_flags'] = ["Vague details", "Blames others entirely", "No specific outcome"]
+        selected['green_flags'] = ["Specific situation", "Takes responsibility", "Shows growth"]
+        
+        self.competencies_tested.append(selected['competency'])
+        print(f"[BEHAVIORAL] Selected fallback: {selected['question'][:50]}...")
+        return selected
 
     async def evaluate_answer(
         self,
@@ -560,18 +829,104 @@ Generate ONE probing question. Respond in JSON:
                     
                 question_data = json.loads(response.strip())
                 self.aspects_covered.append(question_data.get("aspect", "general"))
+                print(f"[VIVA] Generated question: {question_data['question'][:50]}...")
                 return question_data
-            except:
-                pass
+            except Exception as e:
+                print(f"[VIVA] JSON parsing error: {e}")
         
-        # Fallback
-        return {
-            "question": "Walk me through the most challenging technical problem you faced in your project and how you solved it step by step.",
-            "aspect": "challenges",
-            "verification_intent": "Verify hands-on experience",
-            "expected_knowledge": "Specific debugging steps, tools used, time taken",
-            "fake_indicators": ["Vague answers", "No specific tools mentioned", "Perfect solution immediately"]
-        }
+        # Dynamic fallback viva questions
+        import random
+        
+        all_viva_questions = [
+            {
+                "question": "Walk me through the most challenging technical problem you faced in your project and how you solved it step by step.",
+                "aspect": "challenges",
+                "verification_intent": "Verify hands-on experience"
+            },
+            {
+                "question": "Explain the architecture of your project. Why did you structure it this way?",
+                "aspect": "architecture",
+                "verification_intent": "Verify understanding of system design"
+            },
+            {
+                "question": "What technologies did you choose for this project and why? What alternatives did you consider?",
+                "aspect": "tech_stack_choice",
+                "verification_intent": "Verify decision-making process"
+            },
+            {
+                "question": "How would you scale your project to handle 10x more users? What would be the bottlenecks?",
+                "aspect": "scalability",
+                "verification_intent": "Verify understanding of scalability"
+            },
+            {
+                "question": "What security measures did you implement? How would you protect against common attacks?",
+                "aspect": "security",
+                "verification_intent": "Verify security awareness"
+            },
+            {
+                "question": "How did you test your project? What was your testing strategy?",
+                "aspect": "testing",
+                "verification_intent": "Verify quality practices"
+            },
+            {
+                "question": "Walk me through your deployment process. How did you get this to production?",
+                "aspect": "deployment",
+                "verification_intent": "Verify DevOps knowledge"
+            },
+            {
+                "question": "If you had to work on this project with a team, how would you divide the work?",
+                "aspect": "team_collaboration",
+                "verification_intent": "Verify collaboration skills"
+            },
+            {
+                "question": "What would you improve in this project if you had more time?",
+                "aspect": "future_improvements",
+                "verification_intent": "Verify self-awareness and growth mindset"
+            },
+            {
+                "question": "Explain a piece of code you're particularly proud of. Why is it well-written?",
+                "aspect": "code_quality",
+                "verification_intent": "Verify coding skills"
+            },
+            {
+                "question": "How does data flow through your application? Walk me through a typical user interaction.",
+                "aspect": "data_flow",
+                "verification_intent": "Verify understanding of system"
+            },
+            {
+                "question": "What was the most difficult bug you encountered? How did you debug it?",
+                "aspect": "debugging",
+                "verification_intent": "Verify debugging skills"
+            },
+            {
+                "question": "How do you handle errors in your application? What happens when something fails?",
+                "aspect": "error_handling",
+                "verification_intent": "Verify robustness"
+            },
+            {
+                "question": "What database did you use and how did you design the schema?",
+                "aspect": "database_design",
+                "verification_intent": "Verify database knowledge"
+            },
+            {
+                "question": "If you were to rebuild this project from scratch, what would you do differently?",
+                "aspect": "lessons_learned",
+                "verification_intent": "Verify learning and reflection"
+            },
+        ]
+        
+        # Filter out already covered aspects
+        available_questions = [q for q in all_viva_questions if q['aspect'] not in self.aspects_covered]
+        if not available_questions:
+            available_questions = all_viva_questions
+        
+        selected = random.choice(available_questions)
+        selected['expected_knowledge'] = 'Specific implementation details, tools used, reasoning'
+        selected['fake_indicators'] = ["Vague answers", "No specific tools mentioned", "Generic responses"]
+        
+        self.aspects_covered.append(selected['aspect'])
+        print(f"[VIVA] Selected fallback: {selected['question'][:50]}...")
+        return selected
 
     async def evaluate_answer(
         self,

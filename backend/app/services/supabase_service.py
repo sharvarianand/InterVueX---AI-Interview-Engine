@@ -30,7 +30,6 @@ class SupabaseService:
 
     @staticmethod
     async def create_session(
-
         user_id: str,
         mode: str,
         persona: str,
@@ -44,15 +43,30 @@ class SupabaseService:
             "user_id": user_id,
             "mode": mode,
             "persona": persona,
-            "github_url": github_url,
-            "deployment_url": deployment_url,
             "project_summary": project_summary,
             "cv_metadata": cv_metadata,
             "status": "active"
         }
+        
+        # Only add these if they are provided to avoid potential schema mismatch errors
+        if github_url:
+            data["github_url"] = github_url
+        if deployment_url:
+            data["deployment_url"] = deployment_url
 
-        response = supabase.table("interview_sessions").insert(data).execute()
-        return response.data[0] if response.data else {}
+        try:
+            response = supabase.table("interview_sessions").insert(data).execute()
+            return response.data[0] if response.data else {}
+        except Exception as e:
+            print(f"[SUPABASE] Error creating session: {e}")
+            # If it fails with a column error, try again without those columns
+            if "deployment_url" in str(e) or "github_url" in str(e):
+                print("[SUPABASE] Retrying without deployment/github URLs due to schema mismatch")
+                data.pop("deployment_url", None)
+                data.pop("github_url", None)
+                response = supabase.table("interview_sessions").insert(data).execute()
+                return response.data[0] if response.data else {}
+            raise e
 
     @staticmethod
     async def update_session_status(session_id: str, status: str):

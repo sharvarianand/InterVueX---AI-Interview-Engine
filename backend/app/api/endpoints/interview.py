@@ -64,14 +64,32 @@ async def start_interview(request: InterviewStartRequest):
     Requires: mode, persona, user_id, and optionally cv_id for personalization.
     """
     from app.services.supabase_service import SupabaseService
+    from app.services.cv_parser import CVParser
     
     # Get the appropriate interview agent based on mode
     agent = get_interview_agent(request.mode)
     
-    # Get CV data if available
+    # Get CV data if available and parse it
     cv_data = None
     if hasattr(request, 'cv_id') and request.cv_id:
-        cv_data = await SupabaseService.get_cv(request.cv_id)
+        print(f"[INTERVIEW] Fetching CV with ID: {request.cv_id}")
+        cv_raw = await SupabaseService.get_cv(request.cv_id)
+        
+        if cv_raw and cv_raw.get('content'):
+            print(f"[INTERVIEW] CV found, parsing content...")
+            parser = CVParser()
+            
+            # Parse CV to extract structured data
+            cv_data = await parser.parse_with_ai(cv_raw['content'])
+            
+            print(f"[INTERVIEW] CV parsed successfully!")
+            print(f"[INTERVIEW] Skills found: {list(cv_data.get('skills', {}).keys())}")
+            print(f"[INTERVIEW] Projects found: {len(cv_data.get('projects', []))}")
+            
+            if cv_data.get('ai_analysis'):
+                print(f"[INTERVIEW] AI Analysis: {cv_data['ai_analysis'].get('specialization', 'N/A')}")
+        else:
+            print(f"[INTERVIEW] CV not found or empty")
 
     
     orchestrator = InterviewOrchestrator()

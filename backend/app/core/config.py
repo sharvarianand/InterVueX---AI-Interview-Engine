@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     
     # API Keys
     GEMINI_API_KEY: Optional[str] = None
+    OPENROUTER_API_KEY: Optional[str] = None  # Alternative to Gemini
     GITHUB_TOKEN: Optional[str] = None  # For higher rate limits
     
     # Database
