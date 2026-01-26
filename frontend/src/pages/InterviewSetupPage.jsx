@@ -184,7 +184,7 @@ export default function InterviewSetupPage() {
             setResumeFile(file);
         } catch (error) {
             console.error('CV upload error:', error);
-            alert('Failed to upload CV. Please try again.');
+            alert(`Failed to upload CV: ${error.message}`);
         } finally {
             setUploadingCV(false);
         }

@@ -15,26 +15,21 @@ export class CVService {
     async extractFromPDF(filePath) {
         try {
             // For PDF parsing, we'll use a simple approach
-            // In production, use pdf-parse or pdfjs-dist
-            const pdfParse = await import('pdf-parse').catch(() => null);
-            
-            if (pdfParse) {
+            const pdfParseModule = await import('pdf-parse').catch(() => null);
+            const pdfParse = pdfParseModule?.default || pdfParseModule;
+
+            if (pdfParse && typeof pdfParse === 'function') {
                 const dataBuffer = await fs.readFile(filePath);
-                const data = await pdfParse.default(dataBuffer);
+                const data = await pdfParse(dataBuffer);
                 return this.parseCVContent(data.text);
             } else {
                 // Fallback: return basic structure
-                return {
-                    rawText: 'PDF content extraction requires pdf-parse package',
-                    skills: [],
-                    experience: [],
-                    education: [],
-                    summary: ''
-                };
+                const content = await fs.readFile(filePath, 'utf-8').catch(() => '');
+                return this.parseCVContent(content || 'PDF content extraction requires pdf-parse package');
             }
         } catch (error) {
             console.error('PDF extraction error:', error);
-            throw new Error('Failed to extract PDF content');
+            throw new Error(`Failed to extract PDF content: ${error.message}`);
         }
     }
 
@@ -43,21 +38,15 @@ export class CVService {
      */
     async extractFromDOCX(filePath) {
         try {
-            // For DOCX parsing, use mammoth or docx
-            const mammoth = await import('mammoth').catch(() => null);
-            
-            if (mammoth) {
-                const result = await mammoth.default.extractRawText({ path: filePath });
+            // For DOCX parsing, use mammoth
+            const mammothModule = await import('mammoth').catch(() => null);
+            const mammoth = mammothModule?.default || mammothModule;
+
+            if (mammoth && typeof mammoth.extractRawText === 'function') {
+                const result = await mammoth.extractRawText({ path: filePath });
                 return this.parseCVContent(result.value);
             } else {
-                // Fallback
-                return {
-                    rawText: 'DOCX content extraction requires mammoth package',
-                    skills: [],
-                    experience: [],
-                    education: [],
-                    summary: ''
-                };
+                return this.parseCVContent('DOCX content extraction requires mammoth package');
             }
         } catch (error) {
             console.error('DOCX extraction error:', error);
@@ -70,12 +59,12 @@ export class CVService {
      */
     parseCVContent(text) {
         const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-        
+
         const skills = this.extractSkills(text);
         const experience = this.extractExperience(text);
         const education = this.extractEducation(text);
         const summary = this.extractSummary(text);
-        
+
         return {
             rawText: text,
             skills,
@@ -97,16 +86,16 @@ export class CVService {
             'Git', 'CI/CD', 'REST API', 'GraphQL', 'Microservices', 'Machine Learning', 'AI',
             'Angular', 'Vue', 'Express', 'Django', 'Flask', 'Spring', 'Go', 'Rust', 'PHP'
         ];
-        
+
         const foundSkills = [];
         const lowerText = text.toLowerCase();
-        
+
         skillKeywords.forEach(skill => {
             if (lowerText.includes(skill.toLowerCase())) {
                 foundSkills.push(skill);
             }
         });
-        
+
         return foundSkills;
     }
 
@@ -119,7 +108,7 @@ export class CVService {
             /(senior|junior|mid-level|lead|principal)\s+(developer|engineer|architect)/gi,
             /(worked|experience)\s+(at|with|in)\s+([A-Z][a-zA-Z\s]+)/gi
         ];
-        
+
         const experiences = [];
         experiencePatterns.forEach(pattern => {
             const matches = text.match(pattern);
@@ -127,7 +116,7 @@ export class CVService {
                 experiences.push(...matches);
             }
         });
-        
+
         return experiences.slice(0, 5); // Limit to 5
     }
 
@@ -139,7 +128,7 @@ export class CVService {
             /(bachelor|master|phd|degree|diploma|certification)\s+(in|of)\s+([A-Z][a-zA-Z\s]+)/gi,
             /(university|college|institute)\s+([A-Z][a-zA-Z\s]+)/gi
         ];
-        
+
         const education = [];
         educationPatterns.forEach(pattern => {
             const matches = text.match(pattern);
@@ -147,7 +136,7 @@ export class CVService {
                 education.push(...matches);
             }
         });
-        
+
         return education.slice(0, 3); // Limit to 3
     }
 
@@ -157,14 +146,14 @@ export class CVService {
     extractSummary(text) {
         const summaryKeywords = ['summary', 'objective', 'about', 'profile'];
         const lines = text.split('\n');
-        
+
         for (let i = 0; i < Math.min(10, lines.length); i++) {
             const line = lines[i].toLowerCase();
             if (summaryKeywords.some(keyword => line.includes(keyword))) {
                 return lines.slice(i, i + 3).join(' ').substring(0, 500);
             }
         }
-        
+
         // Return first few lines as summary
         return lines.slice(0, 3).join(' ').substring(0, 500);
     }
@@ -180,16 +169,16 @@ export class CVService {
             'AWS', 'Azure', 'GCP', 'Docker', 'Kubernetes', 'Jenkins', 'GitLab CI',
             'GraphQL', 'REST', 'gRPC', 'Microservices', 'Serverless'
         ];
-        
+
         const foundTechs = [];
         const lowerText = text.toLowerCase();
-        
+
         techKeywords.forEach(tech => {
             if (lowerText.includes(tech.toLowerCase())) {
                 foundTechs.push(tech);
             }
         });
-        
+
         return [...new Set(foundTechs)]; // Remove duplicates
     }
 
@@ -201,7 +190,7 @@ export class CVService {
             /(project|built|developed|created)\s+([A-Z][a-zA-Z\s]+)/gi,
             /(github|gitlab|portfolio|repository)/gi
         ];
-        
+
         const projects = [];
         projectPatterns.forEach(pattern => {
             const matches = text.match(pattern);
@@ -209,7 +198,7 @@ export class CVService {
                 projects.push(...matches);
             }
         });
-        
+
         return projects.slice(0, 5);
     }
 
@@ -218,7 +207,7 @@ export class CVService {
      */
     async processCV(filePath, fileName) {
         const ext = path.extname(fileName).toLowerCase();
-        
+
         let extractedData;
         if (ext === '.pdf') {
             extractedData = await this.extractFromPDF(filePath);
@@ -227,7 +216,7 @@ export class CVService {
         } else {
             throw new Error('Unsupported file format. Please upload PDF or DOCX.');
         }
-        
+
         return extractedData;
     }
 }
