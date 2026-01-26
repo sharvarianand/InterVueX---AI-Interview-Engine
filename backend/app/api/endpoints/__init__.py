@@ -1,1 +1,0 @@
-# InterVueX API Endpoints

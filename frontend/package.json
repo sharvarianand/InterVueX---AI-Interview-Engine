@@ -1,5 +1,5 @@
 {
-  "name": "frontend",
+  "name": "intervuex",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -11,20 +11,27 @@
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.59.6",
-    "@supabase/supabase-js": "^2.91.1",
+    "@splinetool/react-spline": "^4.1.0",
+    "framer-motion": "^12.29.0",
+    "lucide-react": "^0.563.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "react-router-dom": "^7.13.0"
+    "react-router-dom": "^7.13.0",
+    "recharts": "^2.12.7",
+    "zustand": "^5.0.10"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",
+    "autoprefixer": "^10.4.23",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17",
     "vite": "^7.2.4"
   }
 }

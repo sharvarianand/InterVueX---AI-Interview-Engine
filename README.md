@@ -1,271 +1,229 @@
+# 🧠 InterVueX — AI-Powered Interview Platform
+
 <div align="center">
-  <img src="frontend/public/logo.png" alt="InterVueX Logo" width="120" />
+
+**Master Your Next Interview with AI Precision**
+
+[![React](https://img.shields.io/badge/React-18.2-61dafb?logo=react)](https://reactjs.org/)
+[![Vite](https://img.shields.io/badge/Vite-5.0-646CFF?logo=vite)](https://vitejs.dev/)
+[![TailwindCSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC?logo=tailwindcss)](https://tailwindcss.com/)
+[![Node.js](https://img.shields.io/badge/Node.js-20+-339933?logo=node.js)](https://nodejs.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-2.0-3ECF8E?logo=supabase)](https://supabase.com/)
+
 </div>
 
-# 🌐 InterVueX AI — Complete Application Summary
+---
 
-## **InterVueX AI**
+## 📋 Overview
 
-*A Composable, Project-Aware, Multi-Modal Interview & Evaluation Platform*
+**InterVueX** is a comprehensive AI-powered interview preparation platform that evaluates candidates on:
+
+- ✅ **Technical Accuracy** — Deep understanding, not just memorization
+- ✅ **Reasoning Depth** — How you think through problems
+- ✅ **Communication Quality** — Clarity and structure of responses
+- ✅ **Practical Application** — Real-world problem-solving ability
+- ✅ **Project Understanding** — Defense of your own work
 
 ---
 
-## 1️⃣ What Is InterVueX AI?
-
-InterVueX AI is an **advanced AI-driven evaluation platform** designed to simulate **real interviewers, viva examiners, and hackathon jury members** using a **composable AI architecture**.
-
-Unlike traditional mock interview tools that rely on static questions, InterVueX:
-
-* Understands **what a candidate has actually built**
-* Adapts questioning dynamically
-* Observes **behavior, confidence, and reasoning**
-* Generates **objective, structured evaluation reports**
-
-It is not a chatbot — it is an **AI evaluation engine**.
-
----
-
-## 2️⃣ Who Is It For?
-
-### 👩‍🎓 Candidates / Students
-
-* Interview preparation
-* Project viva practice
-* Hackathon demo readiness
-* Confidence and explanation improvement
-
-InterVueX is a **focused student platform** designed to give candidates an edge.
-
----
-
-
-## 3️⃣ Core Problem It Solves
-
-### Existing Gaps:
-
-* Candidates memorize answers instead of reasoning
-* Interviewers cannot deeply analyze every project
-* GitHub repos are rarely evaluated systematically
-* Live deployments are almost never questioned
-* Feedback is subjective and inconsistent
-
-### InterVueX Solution:
-
-InterVueX evaluates **answers + behavior + project understanding** — together.
-
----
-
-## 4️⃣ Key Capabilities (High-Level)
-
-### ✅ Interview Simulation
-
-* HR Interviews
-* Technical Interviews
-* Behavioral Interviews
-
-### ✅ Project-Based Evaluation
-
-* GitHub repository analysis
-* Live deployment (URL) analysis
-* Architecture-level questioning
-* Design decision justification
-
-### ✅ Video-Based Proctoring
-
-* Camera monitoring during interview
-* Tab-switching detection
-* 2.5 minute answer timer per question
-* Anti-cheat mechanisms
-
-### ✅ Adaptive Questioning
-
-* Questions change based on:
-
-  * Previous answers
-  * Project complexity
-  * Detected confidence
-  * Behavioral signals
-
-### ✅ Objective Evaluation
-
-* Multi-dimensional scoring
-* Reasoning depth analysis
-* Confidence index
-* Improvement roadmap
-
----
-
-## 5️⃣ Mandatory Project Inputs (Project Mode)
-
-When Project Mode is enabled, the user must provide:
-
-* **GitHub Repository Link**
-* **Live Deployment URL**
-
-The system then:
-
-* Analyzes project structure
-* Identifies tech stack & architecture
-* Understands features and limitations
-* Generates **deep, project-specific questions**
-
-Example questions:
-
-* “Why did you choose this database?”
-* “How does this system behave under scale?”
-* “What are the security risks here?”
-
----
-
-## 6️⃣ Application Modes
-
-### 🎓 Viva Examination Mode
-
-* Academic depth
-* Theory justification
-* Architecture explanation
-* Defensive questioning
-
-### 🏆 Hackathon Jury Mode
-
-* Innovation assessment
-* Feasibility & impact
-* Scalability & deployment readiness
-* Real-world relevance
-
-### 💼 Interview Mode
-
-* Technical depth
-* Trade-off analysis
-* System design reasoning
-* Problem-solving under pressure
-
-All modes are built using the **same AI blocks**, composed differently.
-
----
-
-## 7️⃣ Proctoring & Timed Responses
-
-InterVueX uses camera proctoring **with explicit user consent** to:
-
-* Monitor candidate presence during interview
-* Detect tab-switching and window changes
-* Provide **2.5 minutes per question** for answers
-* Track answer time and completion
-
-⚠️ The system does **not accuse** or punish.
-
-Instead, it:
-
-* Monitors for focused interview sessions
-* Auto-submits answers when time expires
-* Creates a **real interview-like environment** with time pressure
-* Ensures fair and consistent evaluation conditions
-
-This creates a **realistic, time-bound interview experience**.
-
----
-
-## 8️⃣ Composable AI Architecture (Core Innovation)
-
-InterVueX is built using **independent AI blocks**:
+## 🏗️ Project Structure
 
 ```
-Evaluator Persona Block
-Project Scraper Block
-Context Understanding Block
-Question Generator Block
-Memory & Reasoning Tracker
-Video Behavior Analyzer
-Evaluation & Scoring Engine
-Pressure Simulation Engine
-Feedback & Improvement Planner
+InterVueX/
+├── frontend/                   # React + Vite Frontend
+│   ├── src/
+│   │   ├── components/         # Reusable UI components
+│   │   │   ├── common/         # Navbar, LoadingScreen
+│   │   │   └── landing/        # AIAura sphere animation
+│   │   ├── pages/              # Page components (8 pages)
+│   │   ├── layouts/            # Dashboard layout
+│   │   ├── store/              # Zustand state management
+│   │   ├── hooks/              # Custom React hooks
+│   │   └── services/           # API service layer
+│   ├── public/                 # Static assets
+│   ├── index.html              # Entry HTML
+│   ├── package.json            # Frontend dependencies
+│   ├── tailwind.config.js      # Design system
+│   └── .env.example            # Environment template
+│
+├── backend/                    # Node.js + Express Backend
+│   ├── src/
+│   │   ├── api/                # Route handlers
+│   │   ├── services/           # Business logic
+│   │   │   ├── aiService.js    # OpenRouter + Gemini
+│   │   │   ├── questionEngine.js
+│   │   │   ├── evaluationEngine.js
+│   │   │   ├── interviewService.js
+│   │   │   └── reportService.js
+│   │   ├── middleware/         # Error handling, rate limiting
+│   │   └── config/             # Configuration
+│   ├── schema.sql              # Database schema
+│   ├── package.json            # Backend dependencies
+│   └── .env.example            # Environment template
+│
+└── README.md                   # This file
 ```
 
-Each block:
+---
 
-* Performs a single cognitive task
-* Can be reused or rearranged
-* Enables different evaluator personalities
+## 🚀 Quick Start
 
-This directly aligns with the **Composable AI theme**.
+### Prerequisites
+
+- Node.js 18+ or Bun
+- Supabase account (for database)
+- OpenRouter or Gemini API key (for AI)
+
+### Frontend Setup
+
+```bash
+# Navigate to frontend
+cd frontend
+
+# Install dependencies
+npm install
+# or
+bun install
+
+# Create environment file
+cp .env.example .env
+
+# Start development server
+npm run dev
+# or
+bun dev
+```
+
+Frontend runs at: **http://localhost:5173/**
+
+### Backend Setup
+
+```bash
+# Navigate to backend
+cd backend
+
+# Install dependencies
+npm install
+
+# Create environment file
+cp .env.example .env
+# Edit .env with your API keys
+
+# Start server
+npm run dev
+# or
+npm start
+```
+
+Backend runs at: **http://localhost:3001/**
 
 ---
 
-## 9️⃣ Evaluator Persona Engine
+## ⚙️ Environment Variables
 
-InterVueX can behave like:
+### Frontend (`frontend/.env`)
 
-* A strict professor
-* A skeptical hackathon judge
-* A startup CTO
-* A friendly HR interviewer
+```env
+VITE_API_URL=http://localhost:3001/api
+VITE_CLERK_PUBLISHABLE_KEY=your_clerk_key
+```
 
-Each persona affects:
+### Backend (`backend/.env`)
 
-* Question style
-* Follow-up aggressiveness
-* Scoring strictness
-* Feedback tone
+```env
+PORT=3001
+NODE_ENV=development
 
-This makes interviews **realistic and unpredictable**.
+# Supabase
+SUPABASE_URL=your_supabase_url
+SUPABASE_ANON_KEY=your_supabase_key
 
----
+# AI Providers
+OPENROUTER_API_KEY=your_openrouter_key
+GEMINI_API_KEY=your_gemini_key
 
-## 🔟 Pressure Simulation Engine
-
-As candidate performance improves:
-
-* Time limits reduce
-* Follow-ups become faster
-* Multi-part questions appear
-* Defensive questioning increases
-
-This simulates **real interview stress** and builds confidence.
+# Auth
+CLERK_SECRET_KEY=your_clerk_secret
+```
 
 ---
 
-## 1️⃣1️⃣ Final Outputs
+## 🎨 Features
 
-### 📊 Candidate Report
-
-* Overall readiness score
-* Skill-wise performance
-* Reasoning depth index
-* Confidence analysis
-* Personalized improvement plan
-* Strengths & weaknesses
-* Project understanding score
-* Hire / Borderline / Needs Improvement signal
-
+| Feature | Description |
+|---------|-------------|
+| 🎯 **Adaptive Interviews** | AI adjusts difficulty based on performance |
+| 💼 **Project Viva** | Upload projects for technical deep-dives |
+| 🗣️ **HR & Behavioral** | Practice situational questions |
+| 📊 **Tech Stack Eval** | Quick focused assessments |
+| 🔒 **Proctored Sessions** | Camera monitoring, fullscreen |
+| 📈 **Recruiter Reports** | Detailed analytics with charts |
+| 🌟 **AI Aura Animation** | Beautiful organic gradient sphere |
 
 ---
 
-## 1️⃣2️⃣ Ethics, Privacy & Safety
+## 📱 Pages
 
-InterVueX is designed with:
-
-* Explicit user consent for video
-* No identity recognition
-* No permanent facial data storage
-* No punitive decisions
-* Behavioral data used only for evaluation context
-
-This makes it **ethically defensible and judge-safe**.
-
----
-
-## 1️⃣3️⃣ Why InterVueX Stands Out
-
-✔ Multi-modal (text + code + video)
-✔ Project-aware questioning
-✔ Candidate + interviewer platform
-✔ Composable AI architecture
-✔ Not available in current market
-✔ Strong academic + industry relevance
+| Route | Description |
+|-------|-------------|
+| `/` | Landing page with AI Aura animation |
+| `/dashboard` | Main dashboard with stats |
+| `/interview/setup` | Multi-step interview wizard |
+| `/interview/live` | Live interview session |
+| `/reports` | Past interview reports |
+| `/progress` | Progress analytics |
+| `/techstack-evaluation` | Quick tech assessments |
+| `/settings` | User preferences |
 
 ---
 
-## 🔥 One-Line Summary (Perfect Ending)
+## 🧠 API Endpoints
 
-> **InterVueX AI is a composable, project-aware, multi-modal interview evaluation engine that understands not just what candidates say — but what they’ve built, how they reason, and how they behave under pressure.**
+### Authentication
+- `POST /api/auth/verify` — Verify token
+- `GET /api/auth/user` — Get user
+
+### Interview
+- `POST /api/interview/start` — Start session
+- `POST /api/interview/:id/answer` — Submit answer
+- `POST /api/interview/:id/end` — End session
+
+### Questions
+- `POST /api/questions/generate` — Generate question
+- `POST /api/questions/follow-up` — Follow-up question
+
+### Evaluation
+- `POST /api/evaluation/answer` — Evaluate answer
+- `POST /api/evaluation/session` — Evaluate session
+
+### Reports
+- `GET /api/reports/:id` — Get report
+- `POST /api/reports/generate` — Generate report
+- `GET /api/reports/user/:id/analytics` — Analytics
+
+---
+
+## 🚀 Deployment
+
+### Frontend (Vercel/Netlify)
+
+```bash
+cd frontend
+npm run build
+# Deploy dist/ folder
+```
+
+### Backend (Railway/Render/Fly.io)
+
+```bash
+cd backend
+npm start
+# Uses src/index.js as entry
+```
+
+---
+
+## 📄 License
+
+MIT License — Built with 💜 for interview excellence
+

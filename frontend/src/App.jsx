@@ -1,140 +1,145 @@
-import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { ClerkProvider, useUser } from '@clerk/clerk-react';
-import { useEffect } from 'react';
-import LandingPage from './pages/LandingPage';
-import ClerkAuthPage from './pages/auth/ClerkAuthPage';
-import StudentDashboard from './pages/student/StudentDashboard';
-import StudentInterview from './pages/student/StudentInterview';
-import StudentReport from './pages/student/StudentReport';
-import StudentReports from './pages/student/StudentReports';
-import StudentProgress from './pages/student/StudentProgress';
-import AboutPage from './pages/info/AboutPage';
-import PricingPage from './pages/info/PricingPage';
-import ContactPage from './pages/info/ContactPage';
-import ErrorBoundary from './components/ErrorBoundary';
-import './App.css';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { Suspense, lazy } from 'react';
+import { useAuth } from '@clerk/clerk-react';
+import LoadingScreen from './components/common/LoadingScreen';
 
+// Lazy load pages for better performance
+const LandingPage = lazy(() => import('./pages/LandingPage'));
+const DashboardPage = lazy(() => import('./pages/DashboardPage'));
+const InterviewSetupPage = lazy(() => import('./pages/InterviewSetupPage'));
+const LiveInterviewPage = lazy(() => import('./pages/LiveInterviewPage'));
+const ReportsPage = lazy(() => import('./pages/ReportsPage'));
+const ProgressPage = lazy(() => import('./pages/ProgressPage'));
+const TechStackPage = lazy(() => import('./pages/TechStackPage'));
+const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 
-// Protected Route Component
-function ProtectedRoute({ children, role }) {
-  const { user, isAuthenticated, isLoading } = useAuth();
-  const location = useLocation();
+/**
+ * Component to handle public routes.
+ * If user is signed in, they are redirected to dashboard.
+ */
+const PublicRoute = ({ children }) => {
+  const { isSignedIn, isLoaded } = useAuth();
 
-  // Wait for auth state to load completely
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-black text-white">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
-          <p className="text-sm font-medium tracking-widest uppercase opacity-50">Synchronizing Auth...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Not authenticated - redirect to auth but save where we were
-  if (!isAuthenticated) {
-    return <Navigate to="/auth" state={{ from: location }} replace />;
-  }
-
-  // Role validation
-  if (role && user?.role !== role) {
-    // If they have no role yet, they shouldn't even be here, but just in case
-    if (!user?.role) {
-      return <Navigate to="/auth" state={{ from: location }} replace />;
-    }
-    // If they have the wrong role, send them to their dashboard
-    return <Navigate to={`/dashboard/${user.role}`} replace />;
-  }
+  if (!isLoaded) return <LoadingScreen />;
+  if (isSignedIn) return <Navigate to="/dashboard" replace />;
 
   return children;
-}
+};
 
-// Auth handler to redirect signed-in users back to their intended destination
-function AuthRedirectHandler() {
-  const { isLoaded, user: clerkUser } = useUser();
-  const { isAuthenticated, user, isLoading } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
+/**
+ * Component to handle protected routes.
+ * If user is not signed in, they are redirected to landing page.
+ */
+const ProtectedRoute = ({ children }) => {
+  const { isSignedIn, isLoaded } = useAuth();
 
-  useEffect(() => {
-    // Only redirect if everything is fully loaded and authenticated
-    if (isLoaded && clerkUser && isAuthenticated && user && !isLoading) {
-      // Check if we have a destination to return to
-      const from = location.state?.from?.pathname || '/dashboard/student';
-      navigate(from, { replace: true });
-    }
-  }, [isLoaded, clerkUser, isAuthenticated, user, isLoading, navigate, location]);
+  if (!isLoaded) return <LoadingScreen />;
+  if (!isSignedIn) return <Navigate to="/" replace />;
 
-  return <ClerkAuthPage />;
-}
-
-
-function AppRoutes() {
-  return (
-    <Routes>
-      {/* Public Routes */}
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/about" element={<AboutPage />} />
-      <Route path="/pricing" element={<PricingPage />} />
-      <Route path="/contact" element={<ContactPage />} />
-
-      {/* Auth Routes - handle all Clerk redirects */}
-      <Route path="/auth/*" element={<AuthRedirectHandler />} />
-      <Route path="/sso-callback" element={<AuthRedirectHandler />} />
-
-      {/* Student Routes */}
-      <Route path="/dashboard/student" element={
-        <ProtectedRoute role="student">
-          <StudentDashboard />
-        </ProtectedRoute>
-      } />
-      <Route path="/interview/:sessionId?" element={
-        <ProtectedRoute role="student">
-          <StudentInterview />
-        </ProtectedRoute>
-      } />
-      <Route path="/report/:reportId" element={
-        <ProtectedRoute>
-          <StudentReport />
-        </ProtectedRoute>
-      } />
-      <Route path="/reports" element={
-        <ProtectedRoute role="student">
-          <StudentReports />
-        </ProtectedRoute>
-      } />
-      <Route path="/progress" element={
-        <ProtectedRoute role="student">
-          <StudentProgress />
-        </ProtectedRoute>
-      } />
-
-
-      {/* Fallback - must be last */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-  );
-}
+  return children;
+};
 
 function App() {
   return (
-    <ErrorBoundary>
-      <BrowserRouter>
-        <ClerkProvider
-          publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}
-          fallbackRedirectUrl="/auth"
-        >
+    <Suspense fallback={<LoadingScreen />}>
+      <Routes>
+        {/* Public Routes - Redirects to dashboard if logged in */}
+        <Route
+          path="/"
+          element={
+            <PublicRoute>
+              <LandingPage />
+            </PublicRoute>
+          }
+        />
 
-          <AuthProvider>
-            <AppRoutes />
-          </AuthProvider>
-        </ClerkProvider>
-      </BrowserRouter>
-    </ErrorBoundary>
+        {/* Dashboard Routes - Protected */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard/:tab"
+          element={
+            <ProtectedRoute>
+              <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Interview Routes - Protected */}
+        <Route
+          path="/interview/setup"
+          element={
+            <ProtectedRoute>
+              <InterviewSetupPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/interview/live"
+          element={
+            <ProtectedRoute>
+              <LiveInterviewPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Analysis Routes - Protected */}
+        <Route
+          path="/reports"
+          element={
+            <ProtectedRoute>
+              <ReportsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/reports/:id"
+          element={
+            <ProtectedRoute>
+              <ReportsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/progress"
+          element={
+            <ProtectedRoute>
+              <ProgressPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Tech Stack Evaluation - Protected */}
+        <Route
+          path="/techstack-evaluation"
+          element={
+            <ProtectedRoute>
+              <TechStackPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Settings - Protected */}
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <SettingsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Catch all - redirect to landing or dashboard based on auth */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Suspense>
   );
-
 }
 
 export default App;

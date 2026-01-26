@@ -1,608 +1,481 @@
+import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import {
+    ChevronRight,
+    Play,
+    Sparkles,
+    Brain,
+    Target,
+    TrendingUp,
+    Shield,
+    Zap,
+    Users,
+    Code,
+    MessageSquare,
+    FileText,
+    Award,
+    BarChart3,
+    CheckCircle2,
+    ArrowRight,
+    Github,
+    Twitter,
+    Linkedin
+} from 'lucide-react';
+import Navbar from '../components/common/Navbar';
+import AIAura from '../components/landing/AIAura';
 
-// Product Icon Component
-export const ProductIcon = ({ size = 24, className = "" }) => (
-  <img
-    src="/logo.png"
-    alt="InterVueX Logo"
-    width={size}
-    height={size}
-    className={className}
-    style={{ objectFit: 'contain' }}
-  />
-);
-
-
-// Other SVG Icons
-const Icons = {
-  brain: (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z" />
-      <path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z" />
-      <path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4" />
-    </svg>
-  ),
-  rocket: (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z" />
-      <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" />
-    </svg>
-  ),
-  target: (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <circle cx="12" cy="12" r="6" />
-      <circle cx="12" cy="12" r="2" />
-    </svg>
-  ),
-  chart: (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 3v18h18" />
-      <path d="m19 9-5 5-4-4-3 3" />
-    </svg>
-  ),
-  video: (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="m22 8-6 4 6 4V8Z" />
-      <rect width="14" height="12" x="2" y="6" rx="2" ry="2" />
-    </svg>
-  ),
-  arrow: (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M5 12h14" />
-      <path d="m12 5 7 7-7 7" />
-    </svg>
-  ),
+// Animation variants
+const fadeInUp = {
+    initial: { opacity: 0, y: 30 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.6 }
 };
 
-// Floating geometric shapes
-// Floating Brand Icon Component
-function FloatingBrandIcon() {
-  return (
-    <div className="floating-brand-icon">
-      <img
-        src="/logo.png"
-        alt="InterVueX"
-        className="brand-float-animation"
-      />
-    </div>
-  );
-}
-
-// Floating Shapes Component
-function FloatingShapes() {
-  return (
-    <div className="floating-shapes">
-      {[...Array(6)].map((_, i) => (
-        <div
-          key={i}
-          className={`shape shape-${i + 1}`}
-          style={{
-            animationDelay: `${i * 0.5}s`,
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
+const staggerContainer = {
+    animate: {
+        transition: {
+            staggerChildren: 0.1
+        }
+    }
+};
 
 export default function LandingPage() {
-  const [isVisible, setIsVisible] = useState(false);
+    const features = [
+        {
+            icon: Brain,
+            title: 'Adaptive AI Interviews',
+            description: 'Dynamic questions that evolve based on your responses, testing true understanding.',
+            gradient: 'from-indigo-500 to-purple-500'
+        },
+        {
+            icon: Target,
+            title: 'Project-Aware Viva',
+            description: 'Upload your projects and face real technical deep-dives on your own work.',
+            gradient: 'from-purple-500 to-pink-500'
+        },
+        {
+            icon: MessageSquare,
+            title: 'HR & Behavioral',
+            description: 'Practice situational questions with personalized feedback on communication.',
+            gradient: 'from-pink-500 to-rose-500'
+        },
+        {
+            icon: Code,
+            title: 'Tech Stack Mastery',
+            description: 'Focused evaluation on your chosen technologies with skill radar analysis.',
+            gradient: 'from-cyan-500 to-blue-500'
+        },
+        {
+            icon: Shield,
+            title: 'Proctored Sessions',
+            description: 'Camera monitoring, fullscreen enforcement, and integrity tracking.',
+            gradient: 'from-emerald-500 to-teal-500'
+        },
+        {
+            icon: BarChart3,
+            title: 'Recruiter-Grade Reports',
+            description: 'Detailed analytics, skill breakdowns, and actionable improvement plans.',
+            gradient: 'from-orange-500 to-amber-500'
+        }
+    ];
 
-  useEffect(() => {
-    setIsVisible(true);
-  }, []);
+    const useCases = [
+        {
+            title: 'Job Seekers',
+            description: 'Practice unlimited mock interviews tailored to your target role and company.',
+            icon: Users
+        },
+        {
+            title: 'Students',
+            description: 'Prepare for campus placements with realistic technical and HR rounds.',
+            icon: Award
+        },
+        {
+            title: 'Developers',
+            description: 'Test your knowledge depth and discover blind spots in your tech stack.',
+            icon: Code
+        },
+        {
+            title: 'Career Switchers',
+            description: 'Build confidence in new domains with structured practice sessions.',
+            icon: TrendingUp
+        }
+    ];
 
-  const features = [
-    {
-      icon: Icons.brain,
-      title: 'AI-Powered Analysis',
-      description: 'Composable AI blocks that adapt to your responses and project context',
-    },
-    {
-      icon: Icons.target,
-      title: 'Project-Aware',
-      description: 'Analyzes your GitHub repos and live deployments for targeted questions',
-    },
-    {
-      icon: Icons.chart,
-      title: 'Deep Insights',
-      description: 'Reasoning depth index, confidence tracking, and improvement roadmaps',
-    },
-    {
-      icon: Icons.video,
-      title: 'Anti-Cheat Proctoring',
-      description: 'Eye tracking and behavioral analysis to ensure authentic evaluations',
-    },
-  ];
+    const stats = [
+        { value: '10K+', label: 'Interviews Conducted' },
+        { value: '95%', label: 'User Satisfaction' },
+        { value: '50+', label: 'Tech Stacks Covered' },
+        { value: '3x', label: 'Faster Improvement' }
+    ];
 
-  const stats = [
-    { value: '10K+', label: 'Students Prepared' },
-    { value: '95%', label: 'Success Rate' },
-    { value: '500+', label: 'Companies Trust Us' },
-    { value: '24/7', label: 'AI Availability' },
-  ];
+    return (
+        <div className="min-h-screen bg-dark-900 overflow-hidden">
+            <Navbar variant="landing" />
 
-  return (
-    <div className="landing-page">
-      {/* Hero Section */}
-      <section className="hero-section">
-        <FloatingShapes />
-        <FloatingBrandIcon />
-
-        <nav className="hero-nav">
-          <div className="nav-logo">
-            <ProductIcon size={28} className="logo-icon" />
-            <span>InterVueX</span>
-          </div>
-          <div className="nav-links">
-            <a href="#features">Features</a>
-            <a href="#personas">For You</a>
-            <Link to="/auth" className="btn btn-outline">Sign In</Link>
-          </div>
-        </nav>
-
-        <div className="hero-content">
-          {/* Main Brand Title in Middle */}
-          <div className={`brand-central ${isVisible ? 'animate-scaleIn' : ''}`}>
-            <ProductIcon size={80} className="central-icon" />
-            <h1 className="central-title">InterVueX</h1>
-          </div>
-
-          {/* Subtitle */}
-          <p className={`hero-subtitle ${isVisible ? 'animate-fadeInUp stagger-2' : ''}`}>
-            The next generation of AI-powered interview evaluations.
-            <br />
-            Project-Aware. Multi-Modal. Objective.
-          </p>
-
-          {/* CTA Buttons */}
-          <div className={`hero-buttons ${isVisible ? 'animate-fadeInUp stagger-3' : ''}`}>
-            <Link to="/auth" className="btn btn-white btn-lg">
-              Get Started Free
-              {Icons.arrow}
-            </Link>
-          </div>
-
-          {/* Feature Pills */}
-          <div className={`feature-pills ${isVisible ? 'animate-fadeIn stagger-4' : ''}`}>
-            {['Project-Aware', 'Eye Tracking', 'Voice + Text', 'Real-Time Feedback'].map((feature, i) => (
-              <span key={i} className="pill">
-                ✓ {feature}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* Scroll indicator */}
-        <div className="scroll-indicator animate-bounce">
-          <div className="scroll-line" />
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="stats-section">
-        <div className="container">
-          <div className="stats-grid-landing">
-            {stats.map((stat, i) => (
-              <div key={i} className="stat-item">
-                <div className="stat-value">{stat.value}</div>
-                <div className="stat-label">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section id="features" className="features-section">
-        <div className="container">
-          <div className="section-header">
-            <span className="section-badge">FEATURES</span>
-            <h2>Why Choose InterVueX?</h2>
-            <p>Cutting-edge AI technology meets proven interview preparation methodology</p>
-          </div>
-
-          <div className="features-grid">
-            {features.map((feature, i) => (
-              <div key={i} className={`feature-card stagger-${i + 1}`}>
-                <div className="feature-icon">
-                  {feature.icon}
+            {/* Hero Section */}
+            <section className="relative min-h-screen flex items-center pt-20">
+                {/* Background effects */}
+                <div className="absolute inset-0 overflow-hidden">
+                    <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-accent-indigo/10 rounded-full blur-3xl" />
+                    <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-accent-purple/10 rounded-full blur-3xl" />
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-accent-cyan/5 rounded-full blur-3xl" />
                 </div>
-                <h3>{feature.title}</h3>
-                <p>{feature.description}</p>
-              </div>
-            ))}
-          </div>
+
+                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+                    <div className="grid lg:grid-cols-2 gap-12 items-center">
+                        {/* Left: Text Content */}
+                        <motion.div
+                            initial={{ opacity: 0, x: -50 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.8 }}
+                            className="text-center lg:text-left"
+                        >
+                            {/* Badge */}
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.2 }}
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent-indigo/10 border border-accent-indigo/20 mb-6"
+                            >
+                                <Sparkles className="w-4 h-4 text-accent-indigo" />
+                                <span className="text-sm text-accent-indigo font-medium">AI-Powered Interview Platform</span>
+                            </motion.div>
+
+                            {/* Headline */}
+                            <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold leading-tight mb-6">
+                                Master Your Next Interview with{' '}
+                                <span className="gradient-text">AI Precision</span>
+                            </h1>
+
+                            {/* Subheadline */}
+                            <p className="text-lg md:text-xl text-white/60 mb-8 max-w-xl mx-auto lg:mx-0">
+                                Experience adaptive mock interviews that evaluate not just answers,
+                                but reasoning depth, communication, and real-world problem-solving.
+                            </p>
+
+                            {/* CTAs */}
+                            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                                <Link to="/dashboard" className="btn-primary group text-lg">
+                                    <span className="flex items-center justify-center gap-2">
+                                        Start Free Interview
+                                        <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                    </span>
+                                </Link>
+                                <a href="#how-it-works" className="btn-secondary flex items-center justify-center gap-2 text-lg">
+                                    <Play className="w-5 h-5" />
+                                    See How It Works
+                                </a>
+                            </div>
+
+                            {/* Social Proof */}
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.6 }}
+                                className="mt-12 flex items-center gap-6 justify-center lg:justify-start"
+                            >
+                                <div className="flex -space-x-3">
+                                    {[1, 2, 3, 4, 5].map((i) => (
+                                        <div
+                                            key={i}
+                                            className="w-10 h-10 rounded-full bg-gradient-to-br from-accent-indigo to-accent-purple border-2 border-dark-900 flex items-center justify-center text-xs font-bold"
+                                        >
+                                            {String.fromCharCode(64 + i)}
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="text-left">
+                                    <p className="text-white font-semibold">10,000+ Users</p>
+                                    <p className="text-white/50 text-sm">Trust InterVueX</p>
+                                </div>
+                            </motion.div>
+                        </motion.div>
+
+                        {/* Right: AI Aura */}
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 1, delay: 0.3 }}
+                            className="flex justify-center lg:justify-end"
+                        >
+                            <AIAura size={450} interactive={true} />
+                        </motion.div>
+                    </div>
+                </div>
+
+                {/* Scroll indicator */}
+                <motion.div
+                    className="absolute bottom-8 left-1/2 -translate-x-1/2"
+                    animate={{ y: [0, 10, 0] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                >
+                    <div className="w-6 h-10 rounded-full border-2 border-white/20 flex justify-center pt-2">
+                        <div className="w-1 h-2 bg-white/40 rounded-full" />
+                    </div>
+                </motion.div>
+            </section>
+
+            {/* Stats Section */}
+            <section className="relative py-20 border-y border-glass-border bg-glass-light">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <motion.div
+                        variants={staggerContainer}
+                        initial="initial"
+                        whileInView="animate"
+                        viewport={{ once: true }}
+                        className="grid grid-cols-2 md:grid-cols-4 gap-8"
+                    >
+                        {stats.map((stat, index) => (
+                            <motion.div
+                                key={index}
+                                variants={fadeInUp}
+                                className="text-center"
+                            >
+                                <div className="text-4xl md:text-5xl font-display font-bold gradient-text mb-2">
+                                    {stat.value}
+                                </div>
+                                <div className="text-white/50">{stat.label}</div>
+                            </motion.div>
+                        ))}
+                    </motion.div>
+                </div>
+            </section>
+
+            {/* Features Section */}
+            <section id="features" className="relative py-24">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    {/* Section Header */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        className="text-center mb-16"
+                    >
+                        <h2 className="text-3xl md:text-4xl font-display font-bold mb-4">
+                            Everything You Need to{' '}
+                            <span className="gradient-text">Ace Interviews</span>
+                        </h2>
+                        <p className="text-white/60 text-lg max-w-2xl mx-auto">
+                            A comprehensive suite of AI-powered tools designed to transform your interview preparation.
+                        </p>
+                    </motion.div>
+
+                    {/* Features Grid */}
+                    <motion.div
+                        variants={staggerContainer}
+                        initial="initial"
+                        whileInView="animate"
+                        viewport={{ once: true }}
+                        className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+                    >
+                        {features.map((feature, index) => (
+                            <motion.div
+                                key={index}
+                                variants={fadeInUp}
+                                className="glass-card-hover p-6 group"
+                            >
+                                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                                    <feature.icon className="w-6 h-6 text-white" />
+                                </div>
+                                <h3 className="text-xl font-display font-semibold mb-2">{feature.title}</h3>
+                                <p className="text-white/60">{feature.description}</p>
+                            </motion.div>
+                        ))}
+                    </motion.div>
+                </div>
+            </section>
+
+            {/* How It Works Section */}
+            <section id="how-it-works" className="relative py-24 bg-dark-800/50">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    {/* Section Header */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        className="text-center mb-16"
+                    >
+                        <h2 className="text-3xl md:text-4xl font-display font-bold mb-4">
+                            How <span className="gradient-text">InterVueX</span> Works
+                        </h2>
+                        <p className="text-white/60 text-lg max-w-2xl mx-auto">
+                            Three simple steps to transform your interview performance.
+                        </p>
+                    </motion.div>
+
+                    {/* Steps */}
+                    <div className="grid md:grid-cols-3 gap-8 relative">
+                        {/* Connection line */}
+                        <div className="hidden md:block absolute top-16 left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-accent-indigo via-accent-purple to-accent-cyan" />
+
+                        {[
+                            {
+                                step: '01',
+                                title: 'Choose Interview Type',
+                                description: 'Select from Technical, HR, Project Viva, or Tech Stack evaluation modes.',
+                                icon: Target
+                            },
+                            {
+                                step: '02',
+                                title: 'Complete Your Session',
+                                description: 'Face adaptive AI questions with real-time proctoring and time management.',
+                                icon: Zap
+                            },
+                            {
+                                step: '03',
+                                title: 'Get Detailed Analysis',
+                                description: 'Receive comprehensive reports with skill breakdowns and improvement roadmaps.',
+                                icon: BarChart3
+                            }
+                        ].map((step, index) => (
+                            <motion.div
+                                key={index}
+                                initial={{ opacity: 0, y: 30 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: index * 0.2 }}
+                                className="relative text-center"
+                            >
+                                <div className="relative inline-flex items-center justify-center w-32 h-32 mb-6">
+                                    <div className="absolute inset-0 rounded-full bg-gradient-to-br from-accent-indigo/20 to-accent-purple/20 animate-pulse" />
+                                    <div className="relative w-24 h-24 rounded-full bg-dark-700 border border-glass-border flex items-center justify-center">
+                                        <step.icon className="w-10 h-10 text-accent-indigo" />
+                                    </div>
+                                    <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-accent-indigo flex items-center justify-center text-sm font-bold">
+                                        {step.step}
+                                    </div>
+                                </div>
+                                <h3 className="text-xl font-display font-semibold mb-2">{step.title}</h3>
+                                <p className="text-white/60">{step.description}</p>
+                            </motion.div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* Use Cases Section */}
+            <section id="use-cases" className="relative py-24">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        className="text-center mb-16"
+                    >
+                        <h2 className="text-3xl md:text-4xl font-display font-bold mb-4">
+                            Built for <span className="gradient-text">Everyone</span>
+                        </h2>
+                        <p className="text-white/60 text-lg max-w-2xl mx-auto">
+                            Whether you're a student, professional, or career switcher — InterVueX adapts to your needs.
+                        </p>
+                    </motion.div>
+
+                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {useCases.map((useCase, index) => (
+                            <motion.div
+                                key={index}
+                                initial={{ opacity: 0, y: 30 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: index * 0.1 }}
+                                className="glass-card p-6 text-center group hover:bg-glass-medium transition-all duration-300"
+                            >
+                                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-accent-indigo/10 border border-accent-indigo/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <useCase.icon className="w-8 h-8 text-accent-indigo" />
+                                </div>
+                                <h3 className="text-lg font-display font-semibold mb-2">{useCase.title}</h3>
+                                <p className="text-white/60 text-sm">{useCase.description}</p>
+                            </motion.div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* CTA Section */}
+            <section className="relative py-24">
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        viewport={{ once: true }}
+                        className="relative glass-card p-12 text-center overflow-hidden"
+                    >
+                        {/* Background effects */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-accent-indigo/10 via-transparent to-accent-purple/10" />
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-accent-indigo/20 rounded-full blur-3xl -translate-y-1/2" />
+
+                        <div className="relative">
+                            <h2 className="text-3xl md:text-4xl font-display font-bold mb-4">
+                                Ready to Transform Your Interview Skills?
+                            </h2>
+                            <p className="text-white/60 text-lg mb-8 max-w-xl mx-auto">
+                                Join thousands of candidates who've boosted their confidence and landed their dream jobs with InterVueX.
+                            </p>
+                            <Link to="/dashboard" className="btn-primary inline-flex items-center gap-2 text-lg">
+                                <span>Start Your Free Interview</span>
+                                <ArrowRight className="w-5 h-5" />
+                            </Link>
+                        </div>
+                    </motion.div>
+                </div>
+            </section>
+
+            {/* Footer */}
+            <footer className="border-t border-glass-border py-12">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="grid md:grid-cols-4 gap-8">
+                        {/* Brand */}
+                        <div className="md:col-span-2">
+                            <div className="flex items-center gap-2 mb-4">
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-indigo to-accent-purple flex items-center justify-center">
+                                    <Sparkles className="w-5 h-5 text-white" />
+                                </div>
+                                <span className="font-display font-bold text-xl">InterVueX</span>
+                            </div>
+                            <p className="text-white/50 mb-6 max-w-sm">
+                                AI-powered interview preparation platform that helps you practice, improve, and succeed.
+                            </p>
+                            <div className="flex gap-4">
+                                <a href="#" className="w-10 h-10 rounded-lg bg-glass-light border border-glass-border flex items-center justify-center text-white/60 hover:text-white hover:bg-glass-medium transition-all">
+                                    <Twitter className="w-5 h-5" />
+                                </a>
+                                <a href="#" className="w-10 h-10 rounded-lg bg-glass-light border border-glass-border flex items-center justify-center text-white/60 hover:text-white hover:bg-glass-medium transition-all">
+                                    <Github className="w-5 h-5" />
+                                </a>
+                                <a href="#" className="w-10 h-10 rounded-lg bg-glass-light border border-glass-border flex items-center justify-center text-white/60 hover:text-white hover:bg-glass-medium transition-all">
+                                    <Linkedin className="w-5 h-5" />
+                                </a>
+                            </div>
+                        </div>
+
+                        {/* Links */}
+                        <div>
+                            <h4 className="font-semibold mb-4">Product</h4>
+                            <ul className="space-y-2">
+                                <li><a href="#features" className="text-white/50 hover:text-white transition-colors">Features</a></li>
+                                <li><a href="#how-it-works" className="text-white/50 hover:text-white transition-colors">How It Works</a></li>
+                                <li><a href="#use-cases" className="text-white/50 hover:text-white transition-colors">Use Cases</a></li>
+                                <li><Link to="/dashboard" className="text-white/50 hover:text-white transition-colors">Dashboard</Link></li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h4 className="font-semibold mb-4">Resources</h4>
+                            <ul className="space-y-2">
+                                <li><a href="#" className="text-white/50 hover:text-white transition-colors">Documentation</a></li>
+                                <li><a href="#" className="text-white/50 hover:text-white transition-colors">Blog</a></li>
+                                <li><a href="#" className="text-white/50 hover:text-white transition-colors">Support</a></li>
+                                <li><a href="#" className="text-white/50 hover:text-white transition-colors">Privacy</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div className="border-t border-glass-border mt-12 pt-8 text-center text-white/40 text-sm">
+                        © 2024 InterVueX. All rights reserved. Built with 💜 for interview excellence.
+                    </div>
+                </div>
+            </footer>
         </div>
-      </section>
-
-      <section id="personas" className="personas-section">
-        <div className="container">
-          <div className="section-header">
-            <span className="section-badge">FOR STUDENTS</span>
-            <h2>Master Your Interview Game</h2>
-            <p>The powerful AI engine tailored for your career success</p>
-          </div>
-
-          <div className="personas-grid" style={{ gridTemplateColumns: '1fr', maxWidth: '600px', margin: '0 auto' }}>
-            <div className="persona-card">
-              <div className="persona-icon">🎓</div>
-              <h3>Start Your Journey</h3>
-              <p>Practice interviews, defend your projects, and get detailed feedback to improve</p>
-              <Link to="/auth" className="btn btn-black">
-                Start Practicing Now →
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-
-      {/* Footer */}
-      <footer className="landing-footer">
-        <div className="container">
-          <div className="footer-content">
-            <div className="footer-brand">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                <ProductIcon size={24} />
-                <h3 style={{ margin: 0 }}>InterVueX</h3>
-              </div>
-              <p>AI-Powered Interview Excellence</p>
-            </div>
-            <div className="footer-links">
-              <a href="#features">Features</a>
-              <Link to="/about">About</Link>
-              <Link to="/pricing">Pricing</Link>
-              <Link to="/contact">Contact</Link>
-            </div>
-          </div>
-          <div className="footer-bottom">
-            <p>© 2026 InterVueX. Built with precision for better interviews.</p>
-          </div>
-        </div>
-      </footer>
-
-      <style>{`
-        .landing-page {
-          overflow-x: hidden;
-          background: #000;
-          color: #fff;
-        }
-
-        /* Hero Section */
-        .hero-section {
-          min-height: 100vh;
-          background: #000;
-          position: relative;
-          overflow: hidden;
-          display: flex;
-          flex-direction: column;
-        }
-
-        .floating-shapes {
-          position: absolute;
-          inset: 0;
-          overflow: hidden;
-          pointer-events: none;
-        }
-
-        .shape {
-          position: absolute;
-          border: 1px solid rgba(255,255,255,0.05);
-          border-radius: 50%;
-          animation: float 20s ease-in-out infinite;
-        }
-
-        .shape-1 { width: 400px; height: 400px; top: -100px; right: -100px; }
-        .shape-2 { width: 300px; height: 300px; bottom: 10%; left: -50px; }
-        .shape-3 { width: 200px; height: 200px; top: 40%; right: 10%; }
-
-        /* Navigation */
-        .hero-nav {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 1.5rem 3rem;
-          position: relative;
-          z-index: 10;
-        }
-
-        .nav-logo {
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-          font-size: 1.5rem;
-          font-weight: 800;
-          letter-spacing: -0.5px;
-        }
-
-        .logo-icon { color: #fff; }
-
-        .nav-links {
-          display: flex;
-          align-items: center;
-          gap: 2rem;
-        }
-
-        .nav-links a {
-          color: #a3a3a3;
-          text-decoration: none;
-          font-size: 0.875rem;
-          transition: color 0.2s;
-        }
-
-        .nav-links a:hover { color: #fff; }
-
-        .btn-outline {
-          border: 1px solid #404040;
-          padding: 0.5rem 1.25rem;
-          border-radius: var(--radius-full);
-          text-decoration: none;
-          color: #fff;
-        }
-
-        .hero-content {
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          text-align: center;
-          padding: 2rem;
-          max-width: 900px;
-          margin: 0 auto;
-          position: relative;
-          z-index: 10;
-        }
-
-        /* Central Brand */
-        .brand-central {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 1.5rem;
-          margin-bottom: 2rem;
-          margin-top: -10vh;
-        }
-
-        .central-icon {
-          color: #fff;
-          filter: drop-shadow(0 0 20px rgba(255,255,255,0.2));
-        }
-
-        .central-title {
-          font-size: 6rem;
-          font-weight: 900;
-          color: #fff;
-          letter-spacing: -4px;
-          margin: 0;
-          line-height: 1;
-        }
-
-        .hero-subtitle {
-          font-size: 1.25rem;
-          color: #737373;
-          max-width: 600px;
-          margin-bottom: 3rem;
-          line-height: 1.6;
-        }
-
-        .hero-buttons {
-          display: flex;
-          gap: 1.5rem;
-          justify-content: center;
-          flex-wrap: wrap;
-        }
-
-        .btn-white {
-          background: #fff;
-          color: #000;
-          display: inline-flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 1rem 2rem;
-          font-weight: 700;
-          border-radius: var(--radius-full);
-          transition: all 0.2s;
-          text-decoration: none;
-          border: none;
-        }
-
-        .btn-white:hover {
-          background: #e5e5e5;
-          transform: translateY(-2px);
-        }
-
-        .btn-outline-white {
-          background: transparent;
-          color: #fff;
-          border: 1.5px solid #fff;
-          display: inline-flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 1rem 2rem;
-          font-weight: 700;
-          border-radius: var(--radius-full);
-          transition: all 0.2s;
-          text-decoration: none;
-        }
-
-        .btn-outline-white:hover {
-          background: rgba(255, 255, 255, 0.1);
-          transform: translateY(-2px);
-        }
-
-        .feature-pills {
-          display: flex;
-          gap: 1rem;
-          justify-content: center;
-          flex-wrap: wrap;
-          margin-top: 4rem;
-        }
-
-        .pill {
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          padding: 0.6rem 1.2rem;
-          border-radius: 999px;
-          font-size: 0.8rem;
-          color: #737373;
-          font-weight: 500;
-        }
-
-        .scroll-indicator {
-          position: absolute;
-          bottom: 3rem;
-          left: 50%;
-          transform: translateX(-50%);
-        }
-
-        .scroll-line {
-          width: 1.5px;
-          height: 80px;
-          background: linear-gradient(180deg, #fff 0%, transparent 100%);
-        }
-
-        /* Stats Section */
-        .stats-section {
-          background: #000;
-          padding: 5rem 0;
-          border-top: 1px solid #171717;
-          border-bottom: 1px solid #171717;
-        }
-
-        .container {
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 0 2rem;
-        }
-
-        .stats-grid-landing {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 3rem;
-          text-align: center;
-        }
-
-        .stat-item .stat-value {
-          font-size: 3.5rem;
-          font-weight: 800;
-          color: #fff;
-          letter-spacing: -2px;
-          margin-bottom: 0.5rem;
-        }
-
-        .stat-item .stat-label {
-          color: #525252;
-          font-size: 0.75rem;
-          text-transform: uppercase;
-          letter-spacing: 0.1em;
-        }
-
-        /* Features Section */
-        .features-section { padding: 8rem 0; background: #000; }
-        .section-header { text-align: center; margin-bottom: 5rem; }
-        .section-badge {
-          display: inline-block;
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          color: #737373;
-          padding: 0.5rem 1.25rem;
-          border-radius: 999px;
-          font-size: 0.65rem;
-          font-weight: 700;
-          letter-spacing: 0.2em;
-          margin-bottom: 1.5rem;
-        }
-
-        .section-header h2 { font-size: 3rem; margin-bottom: 1rem; color: #fff; letter-spacing: -1px; }
-        .section-header p { color: #525252; font-size: 1.1rem; }
-
-        .features-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-          gap: 2rem;
-        }
-
-        .feature-card {
-          background: #050505;
-          border: 1px solid #171717;
-          padding: 3rem 2rem;
-          border-radius: var(--radius-2xl);
-          transition: all 0.3s ease;
-          text-align: center;
-        }
-
-        .feature-card:hover { border-color: #404040; transform: translateY(-8px); background: #080808; }
-        .feature-icon {
-          width: 56px;
-          height: 56px;
-          background: #111;
-          border-radius: var(--radius-lg);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #fff;
-          margin: 0 auto 2rem;
-          border: 1px solid #222;
-        }
-
-        .feature-card h3 { color: #fff; margin-bottom: 1rem; font-size: 1.25rem; }
-        .feature-card p { color: #525252; font-size: 0.9rem; line-height: 1.7; }
-
-        /* Personas Section */
-        .personas-section { padding: 8rem 0; background: #050505; }
-        .personas-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem; max-width: 1000px; margin: 0 auto; }
-        .persona-card {
-          background: #fff;
-          color: #000;
-          padding: 4rem 3rem;
-          border-radius: var(--radius-2xl);
-          transition: all 0.3s ease;
-          text-align: center;
-        }
-
-        .persona-card.inverted { background: #000; color: #fff; border: 1px solid #171717; }
-        .persona-icon { font-size: 3rem; margin-bottom: 1.5rem; }
-        .persona-card h3 { margin-bottom: 1rem; font-size: 2rem; letter-spacing: -1px; }
-        .persona-card p { color: #525252; margin-bottom: 2rem; font-size: 1rem; }
-        .persona-card.inverted p { color: #737373; }
-
-        .btn-black { 
-          background: #000; color: #fff; padding: 1rem 2rem; 
-          border-radius: var(--radius-lg); font-weight: 700; text-decoration: none; 
-          display: inline-block; transition: all 0.2s;
-        }
-        .btn-black:hover { background: #222; transform: scale(1.05); }
-
-        .btn-white-on-black { 
-          background: #fff; color: #000; padding: 1rem 2rem; 
-          border-radius: var(--radius-lg); font-weight: 700; text-decoration: none; 
-          display: inline-block; transition: all 0.2s;
-        }
-        .btn-white-on-black:hover { background: #e5e5e5; transform: scale(1.05); }
-
-        /* Footer */
-        .landing-footer { background: #000; color: #525252; padding: 6rem 0 3rem; border-top: 1px solid #171717; }
-        .footer-content { display: flex; justify-content: space-between; align-items: center; padding-bottom: 3rem; border-bottom: 1px solid #171717; margin-bottom: 3rem; }
-        .footer-brand h3 { color: #fff; font-size: 1.5rem; letter-spacing: -0.5px; }
-        .footer-links { display: flex; gap: 3rem; }
-        .footer-links a { color: #525252; text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
-        .footer-links a:hover { color: #fff; }
-        .footer-bottom p { color: #222; font-size: 0.8rem; font-weight: 600; }
-
-        @media (max-width: 768px) {
-          .hero-nav { padding: 1.5rem; }
-          .nav-links { display: none; }
-          .central-title { font-size: 4rem; letter-spacing: -2px; }
-          .stats-grid-landing { grid-template-columns: repeat(2, 1fr); gap: 2rem; }
-          .personas-grid { grid-template-columns: 1fr; }
-          .central-icon { width: 60px; height: 60px; }
-        }
-      `}</style>
-    </div>
-  );
+    );
 }
