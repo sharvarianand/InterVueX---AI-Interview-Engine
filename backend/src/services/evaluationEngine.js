@@ -1,4 +1,5 @@
 import { AIService } from './aiService.js';
+import { extractJSON } from '../utils/aiUtils.js';
 
 const aiService = new AIService();
 
@@ -42,7 +43,9 @@ Evaluate this answer comprehensively.
                 responseFormat: 'json'
             });
 
-            const evaluation = JSON.parse(response);
+            const evaluation = extractJSON(response);
+            if (!evaluation) throw new Error('Failed to parse AI evaluation response');
+
 
             return {
                 questionId: question.id,

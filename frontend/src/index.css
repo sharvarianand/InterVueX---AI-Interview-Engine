@@ -6,21 +6,12 @@
 
 /* Base Styles */
 @layer base {
-  * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-  }
-
-  html {
-    scroll-behavior: smooth;
-  }
-
   body {
     @apply bg-dark-900 text-white font-sans antialiased;
-    background-image: 
+    background:
       radial-gradient(ellipse at 20% 0%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 100%, rgba(139, 92, 246, 0.06) 0%, transparent 50%);
+      radial-gradient(ellipse at 80% 100%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
+      #0A0D12;
     min-height: 100vh;
   }
 
@@ -48,10 +39,11 @@
 
 /* Component Styles */
 @layer components {
+
   /* Glassmorphic Card */
   .glass-card {
     @apply bg-glass-light backdrop-blur-xl border border-glass-border rounded-2xl;
-    box-shadow: 
+    box-shadow:
       0 8px 32px rgba(0, 0, 0, 0.3),
       inset 0 1px 0 rgba(255, 255, 255, 0.05);
   }
@@ -61,9 +53,8 @@
   }
 
   .glass-card-hover:hover {
-    @apply bg-glass-medium border-white/20;
-    transform: translateY(-2px);
-    box-shadow: 
+    @apply bg-glass-medium border-white/20 -translate-y-0.5;
+    box-shadow:
       0 12px 40px rgba(0, 0, 0, 0.4),
       0 0 30px rgba(99, 102, 241, 0.1),
       inset 0 1px 0 rgba(255, 255, 255, 0.08);
@@ -71,13 +62,13 @@
 
   /* Buttons */
   .btn-primary {
-    @apply relative px-6 py-3 font-semibold text-white rounded-xl overflow-hidden transition-all duration-300;
+    @apply relative px-6 py-3 font-semibold text-white rounded-xl overflow-hidden transition-all duration-300 z-0;
     background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
   }
 
   .btn-primary::before {
     content: '';
-    @apply absolute inset-0 opacity-0 transition-opacity duration-300;
+    @apply absolute inset-0 opacity-0 transition-opacity duration-300 -z-10;
     background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);
   }
 
@@ -86,7 +77,7 @@
   }
 
   .btn-primary:hover {
-    transform: translateY(-2px);
+    @apply -translate-y-0.5;
     box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
   }
 
@@ -100,19 +91,16 @@
   }
 
   .btn-secondary:hover {
-    @apply bg-glass-medium border-white/20 text-white;
-    transform: translateY(-2px);
+    @apply bg-glass-medium border-white/20 text-white -translate-y-0.5;
   }
 
   /* Gradient Text */
   .gradient-text {
-    @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, #6366F1 0%, #8B5CF6 50%, #06B6D4 100%);
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-accent-indigo via-accent-purple to-accent-cyan;
   }
 
   .gradient-text-alt {
-    @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, #EC4899 0%, #8B5CF6 50%, #6366F1 100%);
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-accent-pink via-accent-purple to-accent-indigo;
   }
 
   /* Input Styles */
@@ -130,8 +118,7 @@
   }
 
   .sidebar-item.active {
-    @apply text-white bg-gradient-to-r from-accent-indigo/20 to-accent-purple/10;
-    @apply border-l-2 border-accent-indigo;
+    @apply text-white bg-gradient-to-r from-accent-indigo/20 to-accent-purple/10 border-l-2 border-accent-indigo;
   }
 
   /* Progress Bar */
@@ -140,8 +127,7 @@
   }
 
   .progress-bar-fill {
-    @apply h-full rounded-full transition-all duration-500;
-    background: linear-gradient(90deg, #6366F1 0%, #8B5CF6 50%, #06B6D4 100%);
+    @apply h-full rounded-full transition-all duration-500 bg-gradient-to-r from-accent-indigo via-accent-purple to-accent-cyan;
   }
 
   /* Badge */
@@ -166,11 +152,11 @@
   .tooltip {
     @apply absolute z-50 px-3 py-2 text-sm text-white bg-dark-600 rounded-lg;
     @apply border border-glass-border backdrop-blur-xl;
-    @apply opacity-0 invisible transition-all duration-200;
+    @apply opacity-0 invisible transition-all duration-200 pointer-events-none;
   }
 
   .tooltip-trigger:hover .tooltip {
-    @apply opacity-100 visible;
+    @apply opacity-100 visible translate-y-0.5;
   }
 
   /* Divider */
@@ -196,7 +182,21 @@
     content: '';
     @apply absolute inset-0 rounded-full;
     background: radial-gradient(circle, rgba(99, 102, 241, 0.2) 0%, transparent 70%);
-    animation: pulse 3s ease-in-out infinite;
+    animation: aura-pulse 3s ease-in-out infinite;
+  }
+}
+
+@keyframes aura-pulse {
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
   }
 }
 
@@ -223,6 +223,7 @@
   }
 
   .mask-gradient {
+    -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
     mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
   }
 }

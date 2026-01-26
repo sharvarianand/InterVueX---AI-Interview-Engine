@@ -1,5 +1,6 @@
 import config from '../config/index.js';
 import { AIService } from './aiService.js';
+import { extractJSON } from '../utils/aiUtils.js';
 
 const aiService = new AIService();
 
@@ -32,7 +33,9 @@ export class QuestionEngine {
                 responseFormat: 'json'
             });
 
-            const question = JSON.parse(response);
+            const question = extractJSON(response);
+            if (!question) throw new Error('Failed to parse AI question response');
+
             return {
                 id: `q_${Date.now()}`,
                 text: question.question,
@@ -73,7 +76,9 @@ export class QuestionEngine {
                 responseFormat: 'json'
             });
 
-            return JSON.parse(response);
+            const followUp = extractJSON(response);
+            return followUp;
+
         } catch (error) {
             return null;
         }

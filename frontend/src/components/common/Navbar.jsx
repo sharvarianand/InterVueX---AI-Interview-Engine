@@ -100,7 +100,7 @@ export default function Navbar({ variant = 'landing' }) {
                                 <UserButton
                                     appearance={{
                                         elements: {
-                                            userButtonAvatarBox: "w-9 h-9 border border-accent-indigo/30Ring shadow-glow-sm"
+                                            userButtonAvatarBox: "w-9 h-9 border border-accent-indigo/30 shadow-glow-sm"
                                         }
                                     }}
                                 />
