@@ -57,7 +57,7 @@ export default function LoginPage() {
     if (userLoaded && clerkUser) {
       loginWithClerk(clerkUser);
       // Only navigate if we are on the auth page and not already logged in
-      navigate('/select-role');
+      navigate('/dashboard/student');
     }
   }, [clerkUser, userLoaded, loginWithClerk, navigate]);
 
@@ -70,7 +70,7 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       await login(email, password);
-      navigate('/select-role');
+      navigate('/dashboard/student');
     } catch (error) {
       console.error('Login failed:', error);
     } finally {
@@ -133,7 +133,7 @@ export default function LoginPage() {
               onClick={() => signIn.authenticateWithRedirect({
                 strategy: "oauth_google",
                 redirectUrl: "/auth",
-                redirectUrlComplete: "/select-role"
+                redirectUrlComplete: "/dashboard/student"
               })}
             >
               {Icons.google}
@@ -145,13 +145,14 @@ export default function LoginPage() {
               onClick={() => signIn.authenticateWithRedirect({
                 strategy: "oauth_github",
                 redirectUrl: "/auth",
-                redirectUrlComplete: "/select-role"
+                redirectUrlComplete: "/dashboard/student"
               })}
             >
               {Icons.github}
               <span>GitHub</span>
             </button>
           </div>
+
 
           <div className="divider">
             <span>or continue with email</span>

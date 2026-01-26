@@ -83,8 +83,24 @@ class PressureEngine:
                 "hint_availability": "generous",
             }
 
+    @property
+    def current_level(self) -> float:
+        """Current pressure level."""
+        return self.level
+
+    def trigger_suspicion(self, severity: str = "medium"):
+        """Increase pressure if suspicious behavior is detected."""
+        if severity == "high":
+            self.level = min(1.0, self.level + 0.3)
+        else:
+            self.level = min(1.0, self.level + 0.15)
+        
+        # Reset good streak if suspicious
+        self.consecutive_good = 0
+
     def reset(self):
         """Reset pressure to initial state."""
         self.level = 0.5
         self.consecutive_good = 0
         self.consecutive_weak = 0
+

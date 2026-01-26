@@ -47,20 +47,21 @@ export default function StudentReport() {
                 setReport({
                     sessionId: data.session_id,
                     date: new Date(data.created_at || Date.now()).toLocaleDateString(),
-                    type: data.mode === 'viva' ? 'Project Viva' : 'Technical Interview',
-                    overallScore: data.overall_score,
+                    type: data.mode === 'viva' ? 'Project Viva' : data.mode === 'hackathon' ? 'Hackathon Prep' : 'Technical Interview',
+                    overallScore: Math.round((data.overall_score || 0) * 100),
                     verdict: data.verdict,
-                    skills: data.skill_scores.map(s => ({
+                    skills: (data.skill_scores || []).map(s => ({
                         name: s.skill,
-                        score: s.score,
+                        score: Math.round((s.score || 0) * 100),
                         feedback: s.feedback
                     })),
-                    reasoningDepth: data.reasoning_depth_index * 10 || data.reasoning_depth_index, // Adjust scale if needed
-                    confidenceIndex: data.confidence_index * 10 || data.confidence_index,
-                    improvements: data.improvement_roadmap,
-                    strengths: data.strengths,
-                    weaknesses: data.weaknesses,
+                    reasoningDepth: Math.round((data.reasoning_depth_index || 0) * 100),
+                    confidenceIndex: Math.round((data.confidence_index || 0) * 100),
+                    improvements: data.improvement_roadmap || [],
+                    strengths: data.strengths || [],
+                    weaknesses: data.weaknesses || [],
                 });
+
             } catch (err) {
                 console.error('Failed to fetch report:', err);
                 setError('Failed to load report. Please try again later.');

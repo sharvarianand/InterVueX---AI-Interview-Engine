@@ -12,14 +12,11 @@ export default function ClerkAuthPage() {
     useEffect(() => {
         // Wait for both Clerk and AuthContext to be ready
         if (clerkLoaded && clerkUser && isAuthenticated && user) {
-            // User is signed in - redirect appropriately
-            if (user.role) {
-                navigate(`/dashboard/${user.role}`, { replace: true });
-            } else {
-                navigate('/select-role', { replace: true });
-            }
+            // User is signed in - always redirect to student dashboard
+            navigate('/dashboard/student', { replace: true });
         }
     }, [clerkLoaded, clerkUser, isAuthenticated, user, navigate]);
+
 
     // If user is already authenticated, show loading while redirecting
     if (clerkLoaded && clerkUser) {
@@ -67,8 +64,9 @@ export default function ClerkAuthPage() {
                 routing="path"
                 path="/auth"
                 signUpUrl="/auth"
-                afterSignInUrl="/select-role"
-                afterSignUpUrl="/select-role"
+                fallbackRedirectUrl="/dashboard/student"
+
+
                 appearance={{
                     elements: {
                         rootBox: "mx-auto",

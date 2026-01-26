@@ -1,14 +1,43 @@
 import { Link } from 'react-router-dom';
 import DashboardLayout from '../../components/layout/DashboardLayout';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import { reportAPI } from '../../services/api';
 
 export default function StudentReports() {
-    const reports = [
-        { id: '1', type: 'Technical Interview', date: 'Jan 25, 2026', score: 82, verdict: 'Ready' },
-        { id: '2', type: 'Project Viva', date: 'Jan 23, 2026', score: 75, verdict: 'Borderline' },
-        { id: '3', type: 'Hackathon Prep', date: 'Jan 20, 2026', score: 88, verdict: 'Ready' },
-        { id: '4', type: 'Technical Interview', date: 'Jan 18, 2026', score: 65, verdict: 'Needs Work' },
-        { id: '5', type: 'HR / Behavioral', date: 'Jan 15, 2026', score: 90, verdict: 'Ready' },
-    ];
+    const { user } = useAuth();
+    const [reports, setReports] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchReports = async () => {
+            if (user?.id) {
+                try {
+                    const data = await reportAPI.getAll(user.id);
+                    // Map backend data to frontend format
+                    const formatted = (data || []).map(r => ({
+                        id: r.session_id,
+                        type: r.mode === 'viva' ? 'Project Viva' : r.mode === 'hackathon' ? 'Hackathon Prep' : 'Technical Interview',
+                        date: new Date(r.created_at || Date.now()).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric'
+                        }),
+                        score: Math.round(r.overall_score || 0),
+                        verdict: r.verdict || 'Ready'
+                    }));
+                    setReports(formatted);
+                } catch (error) {
+                    console.error('Failed to fetch reports:', error);
+                } finally {
+                    setIsLoading(false);
+                }
+            }
+        };
+
+        fetchReports();
+    }, [user]);
+
 
     const getVerdictStyle = (verdict) => {
         switch (verdict) {

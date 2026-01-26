@@ -28,6 +28,24 @@ async function apiFetch(endpoint, options = {}) {
 
 // Interview API
 export const interviewAPI = {
+    // Upload CV/Resume for personalization
+    uploadCV: async (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await fetch(`${API_BASE_URL}/interview/upload-cv`, {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            throw new Error(error.detail || 'Failed to upload CV');
+        }
+
+        return response.json();
+    },
+
     // Start a new interview session
     start: async (config) => {
         return apiFetch('/interview/start', {
@@ -36,8 +54,7 @@ export const interviewAPI = {
                 user_id: config.userId,
                 mode: config.mode || 'interview',
                 persona: config.persona || 'startup_cto',
-                github_url: config.githubUrl || null,
-                deployment_url: config.deploymentUrl || null,
+                cv_id: config.cvId || null,
             }),
         });
     },
@@ -55,11 +72,16 @@ export const interviewAPI = {
         return apiFetch(`/interview/${sessionId}/question`);
     },
 
+    // Get session status
+    getStatus: async (sessionId) => {
+        return apiFetch(`/interview/${sessionId}/status`);
+    },
+
     // Send video signal data
-    sendVideoSignal: async (sessionId, signalData) => {
-        return apiFetch(`/interview/${sessionId}/video-signal`, {
+    sendVideoSignals: async (sessionId, signals) => {
+        return apiFetch(`/interview/${sessionId}/video-signals`, {
             method: 'POST',
-            body: JSON.stringify(signalData),
+            body: JSON.stringify({ signals }),
         });
     },
 
@@ -78,11 +100,11 @@ export const reportAPI = {
         return apiFetch(`/report/${reportId}`);
     },
 
-    // Get all reports for current user
-    getAll: async () => {
-        // This would need authentication in production
-        return apiFetch('/report/all');
+    // Get all reports for a specific user
+    getAll: async (userId) => {
+        return apiFetch(`/report/user/${userId}`);
     },
+
 };
 
 // Health check

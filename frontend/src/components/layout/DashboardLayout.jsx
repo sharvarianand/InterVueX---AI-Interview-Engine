@@ -77,21 +77,13 @@ export default function DashboardLayout({ children, role }) {
     navigate('/');
   };
 
-  const studentNavItems = [
+  const navItems = [
     { path: '/dashboard/student', label: 'Dashboard', icon: Icons.dashboard },
     { path: '/interview', label: 'Start Interview', icon: Icons.interview },
     { path: '/reports', label: 'Reports', icon: Icons.reports },
     { path: '/progress', label: 'Progress', icon: Icons.progress },
   ];
 
-  const interviewerNavItems = [
-    { path: '/dashboard/interviewer', label: 'Dashboard', icon: Icons.dashboard },
-    { path: '/session', label: 'New Evaluation', icon: Icons.interview },
-    { path: '/candidates', label: 'Candidates', icon: Icons.candidates },
-    { path: '/analytics', label: 'Analytics', icon: Icons.analytics },
-  ];
-
-  const navItems = role === 'student' ? studentNavItems : interviewerNavItems;
 
   return (
     <div className="dashboard-layout">

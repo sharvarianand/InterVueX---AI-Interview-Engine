@@ -20,9 +20,9 @@ class InterviewStartRequest(BaseModel):
     user_id: str
     mode: InterviewMode
     persona: PersonaType
-    resume_text: Optional[str] = None
     github_url: Optional[str] = None
     deployment_url: Optional[str] = None
+    cv_id: Optional[str] = None
 
 
 class InterviewStartResponse(BaseModel):
@@ -42,6 +42,8 @@ class QuestionResponse(BaseModel):
     focus: str
     difficulty: str
     follow_up: bool = False
+    intent: Optional[str] = None
+
 
 
 class VideoSignal(BaseModel):

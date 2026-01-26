@@ -17,15 +17,37 @@ export default function StudentDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isVisible, setIsVisible] = useState(false);
+  const [reports, setReports] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     setIsVisible(true);
-  }, []);
+
+    const fetchReports = async () => {
+      if (user?.id) {
+        try {
+          const data = await reportAPI.getAll(user.id);
+          setReports(data || []);
+        } catch (error) {
+          console.error('Failed to fetch reports:', error);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchReports();
+  }, [user]);
+
+  // Calculate dynamic stats
+  const avgScore = reports.length > 0
+    ? Math.round(reports.reduce((acc, r) => acc + (r.overall_score || 0), 0) / reports.length)
+    : 0;
 
   const stats = [
-    { value: '12', label: 'Interviews', sublabel: '+3 this week' },
-    { value: '78%', label: 'Avg Score', sublabel: '+5% improvement' },
-    { value: '5', label: 'Skills Up', sublabel: 'Keep going!' },
+    { value: reports.length.toString(), label: 'Interviews', sublabel: reports.length > 0 ? 'Total sessions' : 'Start your first!' },
+    { value: `${avgScore}%`, label: 'Avg Score', sublabel: reports.length > 0 ? 'Overall performance' : 'No data yet' },
+    { value: reports.length > 0 ? 'Ready' : '-', label: 'Latest Status', sublabel: reports[0]?.verdict || 'No verdict yet' },
   ];
 
   const interviewTypes = [
@@ -55,11 +77,13 @@ export default function StudentDashboard() {
     },
   ];
 
-  const recentSessions = [
-    { id: '1', type: 'Technical Interview', date: '2 hours ago', score: 82 },
-    { id: '2', type: 'Project Viva', date: 'Yesterday', score: 75 },
-    { id: '3', type: 'Hackathon Prep', date: '3 days ago', score: 88 },
-  ];
+  const recentSessions = reports.slice(0, 3).map(r => ({
+    id: r.session_id,
+    type: r.mode === 'viva' ? 'Project Viva' : r.mode === 'hackathon' ? 'Hackathon Prep' : 'Technical Interview',
+    date: new Date(r.created_at || Date.now()).toLocaleDateString(),
+    score: Math.round(r.overall_score || 0)
+  }));
+
 
   return (
     <DashboardLayout role="student">

@@ -20,7 +20,6 @@ Unlike traditional mock interview tools that rely on static questions, InterVueX
 * Adapts questioning dynamically
 * Observes **behavior, confidence, and reasoning**
 * Generates **objective, structured evaluation reports**
-* Serves **both candidates and interviewers**
 
 It is not a chatbot — it is an **AI evaluation engine**.
 
@@ -35,16 +34,10 @@ It is not a chatbot — it is an **AI evaluation engine**.
 * Hackathon demo readiness
 * Confidence and explanation improvement
 
-### 🧑‍💼 Interviewers / Evaluators
-
-* Technical interviewers
-* Hackathon judges
-* Professors (viva exams)
-* Recruiters seeking unbiased evaluation
-
-InterVueX is a **two-sided platform**, which is rare in this space.
+InterVueX is a **focused student platform** designed to give candidates an edge.
 
 ---
+
 
 ## 3️⃣ Core Problem It Solves
 
@@ -77,12 +70,12 @@ InterVueX evaluates **answers + behavior + project understanding** — together.
 * Architecture-level questioning
 * Design decision justification
 
-### ✅ Video-Based Behavioral Observation
+### ✅ Video-Based Proctoring
 
-* Eye gaze & attention tracking
-* Facial confidence analysis
-* Cognitive load estimation
-* Authenticity consistency detection
+* Camera monitoring during interview
+* Tab-switching detection
+* 2.5 minute answer timer per question
+* Anti-cheat mechanisms
 
 ### ✅ Adaptive Questioning
 
@@ -151,25 +144,25 @@ All modes are built using the **same AI blocks**, composed differently.
 
 ---
 
-## 7️⃣ Video Intelligence & Behavioral Awareness
+## 7️⃣ Proctoring & Timed Responses
 
-InterVueX uses video input **with explicit user consent** to:
+InterVueX uses camera proctoring **with explicit user consent** to:
 
-* Observe eye movement patterns
-* Detect attention drift
-* Analyze facial confidence
-* Track hesitation and stress
+* Monitor candidate presence during interview
+* Detect tab-switching and window changes
+* Provide **2.5 minutes per question** for answers
+* Track answer time and completion
 
 ⚠️ The system does **not accuse** or punish.
 
 Instead, it:
 
-* Flags *possible external dependency*
-* Adjusts question difficulty
-* Asks conceptual “explain in your own words” questions
-* Improves evaluation accuracy
+* Monitors for focused interview sessions
+* Auto-submits answers when time expires
+* Creates a **real interview-like environment** with time pressure
+* Ensures fair and consistent evaluation conditions
 
-This creates a **real interview-like environment**.
+This creates a **realistic, time-bound interview experience**.
 
 ---
 
@@ -241,14 +234,10 @@ This simulates **real interview stress** and builds confidence.
 * Reasoning depth index
 * Confidence analysis
 * Personalized improvement plan
-
-### 📋 Interviewer Report
-
-* Objective evaluation summary
-* Project understanding score
-* Behavioral consistency indicators
 * Strengths & weaknesses
+* Project understanding score
 * Hire / Borderline / Needs Improvement signal
+
 
 ---
 

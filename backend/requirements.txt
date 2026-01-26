@@ -7,3 +7,5 @@ google-generativeai
 python-dotenv
 sqlalchemy
 aiosqlite
+supabase
+python-multipart

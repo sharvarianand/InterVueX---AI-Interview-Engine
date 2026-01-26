@@ -219,36 +219,27 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Personas Section */}
       <section id="personas" className="personas-section">
         <div className="container">
           <div className="section-header">
-            <span className="section-badge">TWO EXPERIENCES</span>
-            <h2>Built for Students & Interviewers</h2>
-            <p>The same powerful AI engine, tailored for different goals</p>
+            <span className="section-badge">FOR STUDENTS</span>
+            <h2>Master Your Interview Game</h2>
+            <p>The powerful AI engine tailored for your career success</p>
           </div>
 
-          <div className="personas-grid">
+          <div className="personas-grid" style={{ gridTemplateColumns: '1fr', maxWidth: '600px', margin: '0 auto' }}>
             <div className="persona-card">
               <div className="persona-icon">🎓</div>
-              <h3>For Students</h3>
+              <h3>Start Your Journey</h3>
               <p>Practice interviews, defend your projects, and get detailed feedback to improve</p>
               <Link to="/auth" className="btn btn-black">
-                Start Practicing →
-              </Link>
-            </div>
-
-            <div className="persona-card inverted">
-              <div className="persona-icon">👔</div>
-              <h3>For Interviewers</h3>
-              <p>Evaluate candidates objectively with AI-assisted insights and objective scoring</p>
-              <Link to="/auth" className="btn btn-white-on-black">
-                Start Evaluating →
+                Start Practicing Now →
               </Link>
             </div>
           </div>
         </div>
       </section>
+
 
       {/* Footer */}
       <footer className="landing-footer">

@@ -13,91 +13,94 @@ export function AuthProvider({ children }) {
 
     // Sync with Clerk user and Supabase profile
     useEffect(() => {
+        let isMounted = true;
+
         const syncUserProfile = async () => {
-            if (clerkLoaded) {
-                if (clerkUser) {
-                    // User is logged in via Clerk - sync with Supabase
-                    try {
-                        // Check if profile exists in Supabase
-                        const { data: profile, error } = await supabase
-                            .from('profiles')
-                            .select('*')
-                            .eq('id', clerkUser.id)
-                            .single();
+            if (!clerkLoaded) return;
 
-                        if (error && error.code !== 'PGRST116') {
-                            // PGRST116 = no rows returned (expected for new users)
-                            console.error('Error fetching profile:', error);
-                        }
+            if (clerkUser) {
+                // User is logged in via Clerk - sync with Supabase
+                try {
 
-                        if (profile) {
-                            // Profile exists - use role from Supabase
-                            const syncedUser = {
-                                id: clerkUser.id,
-                                email: clerkUser.primaryEmailAddress?.emailAddress,
-                                name: clerkUser.fullName || clerkUser.firstName || profile.full_name || clerkUser.primaryEmailAddress?.emailAddress.split('@')[0],
-                                role: profile.role,
-                            };
-                            setUser(syncedUser);
-                            setIsAuthenticated(true);
-                            localStorage.setItem('intervuex_user', JSON.stringify(syncedUser));
-                        } else {
-                            // No profile exists - create one
-                            const newProfile = {
-                                id: clerkUser.id,
-                                email: clerkUser.primaryEmailAddress?.emailAddress,
-                                full_name: clerkUser.fullName || clerkUser.firstName || clerkUser.primaryEmailAddress?.emailAddress.split('@')[0],
-                                role: null,
-                            };
+                    const { data: profile, error } = await supabase
+                        .from('profiles')
+                        .select('*')
+                        .eq('id', clerkUser.id)
+                        .single();
 
-                            const { error: insertError } = await supabase
-                                .from('profiles')
-                                .insert([newProfile]);
+                    if (error && error.code !== 'PGRST116') {
+                        console.warn('Supabase sync warning (likely schema mismatch):', error.message);
+                        // Proceed as student anyway - don't let DB error block the UI
+                    }
 
-                            if (insertError) {
-                                console.error('Error creating profile:', insertError);
-                            }
-
-                            const syncedUser = {
-                                id: clerkUser.id,
-                                email: newProfile.email,
-                                name: newProfile.full_name,
-                                role: null,
-                            };
-                            setUser(syncedUser);
-                            setIsAuthenticated(true);
-                            localStorage.setItem('intervuex_user', JSON.stringify(syncedUser));
-                        }
-                    } catch (err) {
-                        console.error('Unexpected error syncing profile:', err);
-                        // Fallback to local state
+                    if (profile) {
                         const syncedUser = {
                             id: clerkUser.id,
                             email: clerkUser.primaryEmailAddress?.emailAddress,
-                            name: clerkUser.fullName || clerkUser.firstName || clerkUser.primaryEmailAddress?.emailAddress.split('@')[0],
-                            role: null,
+                            name: clerkUser.fullName || clerkUser.firstName || profile.full_name || clerkUser.primaryEmailAddress?.emailAddress.split('@')[0],
+                            role: 'student',
+                        };
+                        setUser(syncedUser);
+                        setIsAuthenticated(true);
+                    } else {
+                        // Try to create profile, but don't fail if it exists or schema is wrong
+                        const newProfile = {
+                            id: clerkUser.id,
+                            email: clerkUser.primaryEmailAddress?.emailAddress,
+                            full_name: clerkUser.fullName || clerkUser.firstName || clerkUser.primaryEmailAddress?.emailAddress.split('@')[0],
+                            role: 'student',
+                        };
+
+                        const { error: insertError } = await supabase
+                            .from('profiles')
+                            .insert([newProfile]);
+
+                        if (insertError) {
+                            console.warn('Profile creation suppressed:', insertError.message);
+                        }
+
+                        const syncedUser = {
+                            id: clerkUser.id,
+                            email: newProfile.email,
+                            name: newProfile.full_name,
+                            role: 'student',
                         };
                         setUser(syncedUser);
                         setIsAuthenticated(true);
                     }
-                } else {
-                    // No Clerk user - check localStorage for demo/test accounts
-                    const storedUser = localStorage.getItem('intervuex_user');
-                    if (storedUser) {
-                        const userData = JSON.parse(storedUser);
-                        setUser(userData);
-                        setIsAuthenticated(true);
-                    } else {
-                        setUser(null);
-                        setIsAuthenticated(false);
-                    }
+                } catch (err) {
+                    console.error('Critical sync failure:', err);
+                    // Fallback to local clerk state
+                    setUser({
+                        id: clerkUser.id,
+                        email: clerkUser.primaryEmailAddress?.emailAddress,
+                        name: clerkUser.fullName || clerkUser.firstName || clerkUser.primaryEmailAddress?.emailAddress.split('@')[0],
+                        role: 'student',
+                    });
+                    setIsAuthenticated(true);
                 }
-                setIsLoading(false);
+            } else {
+
+                // No Clerk user - check localStorage for demo/test accounts
+                const storedUser = localStorage.getItem('intervuex_user');
+                if (storedUser) {
+                    const userData = JSON.parse(storedUser);
+                    // Ensure role is student
+                    userData.role = 'student';
+                    setUser(userData);
+                    setIsAuthenticated(true);
+                } else {
+                    setUser(null);
+                    setIsAuthenticated(false);
+                }
             }
+            setIsLoading(false);
         };
 
         syncUserProfile();
     }, [clerkUser, clerkLoaded]);
+
+
 
     const login = async (email, password) => {
         // Mock login - keep for local testing if needed
@@ -105,7 +108,7 @@ export function AuthProvider({ children }) {
             id: '1',
             email,
             name: email.split('@')[0],
-            role: null,
+            role: 'student',
         };
         setUser(mockUser);
         setIsAuthenticated(true);
@@ -119,7 +122,7 @@ export function AuthProvider({ children }) {
             id: clerkUser.id,
             email: clerkUser.primaryEmailAddress?.emailAddress,
             name: clerkUser.fullName || clerkUser.firstName || clerkUser.primaryEmailAddress?.emailAddress.split('@')[0],
-            role: user?.role || null,
+            role: 'student',
         };
         setUser(syncedUser);
         setIsAuthenticated(true);
@@ -127,24 +130,9 @@ export function AuthProvider({ children }) {
     };
 
     const selectRole = async (role) => {
-        const updatedUser = { ...user, role };
-        setUser(updatedUser);
-        localStorage.setItem('intervuex_user', JSON.stringify(updatedUser));
-
-        // Persist role to Supabase
-        try {
-            const { error } = await supabase
-                .from('profiles')
-                .update({ role, updated_at: new Date().toISOString() })
-                .eq('id', user.id);
-
-            if (error) {
-                console.error('Error updating role in Supabase:', error);
-            }
-        } catch (err) {
-            console.error('Unexpected error updating role:', err);
-        }
+        // No-op - we only have student role now
     };
+
 
     const logout = async () => {
         await signOut();

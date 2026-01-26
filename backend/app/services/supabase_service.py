@@ -13,13 +13,31 @@ class SupabaseService:
     """Service to handle all Supabase database interactions."""
 
     @staticmethod
+    async def store_cv(parsed_data: Dict[str, Any], user_id: Optional[str] = None) -> str:
+        """Store parsed CV in Supabase and return the ID."""
+        data = {
+            "parsed_data": parsed_data,
+            "user_id": user_id
+        }
+        response = supabase.table("cvs").insert(data).execute()
+        return response.data[0]["id"] if response.data else None
+
+    @staticmethod
+    async def get_cv(cv_id: str) -> Optional[Dict[str, Any]]:
+        """Fetch a specific CV by ID."""
+        response = supabase.table("cvs").select("parsed_data").eq("id", cv_id).single().execute()
+        return response.data["parsed_data"] if response.data else None
+
+    @staticmethod
     async def create_session(
+
         user_id: str,
         mode: str,
         persona: str,
         github_url: Optional[str] = None,
         deployment_url: Optional[str] = None,
         project_summary: Optional[str] = None,
+        cv_metadata: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """Create a new interview session in Supabase."""
         data = {
@@ -29,8 +47,10 @@ class SupabaseService:
             "github_url": github_url,
             "deployment_url": deployment_url,
             "project_summary": project_summary,
+            "cv_metadata": cv_metadata,
             "status": "active"
         }
+
         response = supabase.table("interview_sessions").insert(data).execute()
         return response.data[0] if response.data else {}
 
@@ -46,7 +66,7 @@ class SupabaseService:
         question_text: str,
         question_intent: Optional[str] = None,
         answer_text: Optional[str] = None,
-        evaluation_score: Optional[int] = None,
+        evaluation_score: Optional[float] = None,
         evaluation_feedback: Optional[str] = None,
         behavior_flags: Optional[Dict[str, Any]] = None,
     ):
@@ -67,9 +87,10 @@ class SupabaseService:
     async def update_last_conversation_answer(
         session_id: str,
         answer_text: str,
-        evaluation_score: Optional[int] = None,
+        evaluation_score: Optional[float] = None,
         evaluation_feedback: Optional[str] = None,
     ):
+
         """Update the latest conversation entry with user's answer and AI evaluation."""
         # First get the latest sequence number
         response = supabase.table("conversations").select("id, sequence_number").eq("session_id", session_id).order("sequence_number", desc=True).limit(1).execute()
@@ -95,10 +116,10 @@ class SupabaseService:
             "verdict": report.verdict,
             "skill_scores": [s.model_dump() for s in report.skill_scores],
             "project_understanding_score": report.project_understanding_score,
-            "reasoning_depth": report.reasoning_depth_index,
-            "confidence_score": report.confidence_index,
+            "reasoning_depth_index": report.reasoning_depth_index,
+            "confidence_index": report.confidence_index,
             "behavioral_consistency": report.behavioral_consistency,
-            "roadmap": report.improvement_roadmap,
+            "improvement_roadmap": report.improvement_roadmap,
             "strengths": report.strengths,
             "weaknesses": report.weaknesses,
         }
