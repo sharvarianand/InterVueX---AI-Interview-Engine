@@ -91,7 +91,7 @@ server.listen(PORT, () => {
   ║                                                       ║
   ║   Environment: ${config.nodeEnv.padEnd(20)}            ║
   ║   Port: ${String(PORT).padEnd(26)}            ║
-  ║   WebSocket: Enabled (Ready for HF)                   ║
+  ║   WebSocket: Enabled (Ready for HF PROD)              ║
   ║   Time: ${new Date().toISOString().padEnd(25)}  ║
   ║                                                       ║
   ╚═══════════════════════════════════════════════════════╝
