@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useUser } from '@clerk/clerk-react';
 import {
     Settings,
     User,
@@ -30,11 +31,12 @@ const settingsSections = [
 ];
 
 export default function SettingsPage() {
+    const { user } = useUser();
     const [activeSection, setActiveSection] = useState('profile');
     const [settings, setSettings] = useState({
         // Profile
-        name: 'John Doe',
-        email: 'john@example.com',
+        name: user?.fullName || user?.firstName || 'User',
+        email: user?.primaryEmailAddress?.emailAddress || '',
         role: 'Full Stack Developer',
         experience: '3-5 years',
 
@@ -65,6 +67,17 @@ export default function SettingsPage() {
         autoMuteEnabled: false,
         noiseSupression: true,
     });
+
+    // Update settings when user data changes
+    useEffect(() => {
+        if (user) {
+            setSettings(prev => ({
+                ...prev,
+                name: user.fullName || user.firstName || prev.name,
+                email: user.primaryEmailAddress?.emailAddress || prev.email,
+            }));
+        }
+    }, [user]);
 
     const handleSettingChange = (key, value) => {
         setSettings(prev => ({ ...prev, [key]: value }));

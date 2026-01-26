@@ -9,14 +9,38 @@ const interviewService = new InterviewService();
 // POST /api/interview/start - Start a new interview session
 router.post('/start', requireAuth, async (req, res, next) => {
     try {
-        const { type, role, techStack, experience, persona } = req.body;
+        const { type, role, techStack, experience, persona, cvData, projectData } = req.body;
         const userId = req.auth.userId;
 
         // Validate required fields
-        if (!type || !role) {
+        if (!type) {
             return res.status(400).json({
                 error: 'Validation Error',
-                message: 'Interview type and role are required'
+                message: 'Interview type is required'
+            });
+        }
+
+        // Role is required for technical and HR, but not for project
+        if (type !== 'project' && !role) {
+            return res.status(400).json({
+                error: 'Validation Error',
+                message: 'Role is required for this interview type'
+            });
+        }
+
+        // For technical interviews, CV data is required
+        if (type === 'technical' && !cvData) {
+            return res.status(400).json({
+                error: 'Validation Error',
+                message: 'CV/Resume upload is required for technical interviews'
+            });
+        }
+
+        // For project interviews, GitHub repo or live link is required (not CV)
+        if (type === 'project' && !projectData && !req.body.githubRepo && !req.body.liveLink) {
+            return res.status(400).json({
+                error: 'Validation Error',
+                message: 'GitHub repository or live deployed link is required for project interviews'
             });
         }
 
@@ -28,6 +52,8 @@ router.post('/start', requireAuth, async (req, res, next) => {
             techStack: techStack || [],
             experience: experience || 'mid',
             persona: persona || 'balanced',
+            cvData: cvData || null,
+            projectData: projectData || null,
             status: 'active',
             startedAt: new Date().toISOString(),
             questions: [],

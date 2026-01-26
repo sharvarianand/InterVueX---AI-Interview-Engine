@@ -109,6 +109,8 @@
     @apply text-white placeholder-white/40 backdrop-blur-xl;
     @apply focus:outline-none focus:border-accent-indigo/50 focus:ring-2 focus:ring-accent-indigo/20;
     @apply transition-all duration-300;
+    @apply cursor-text;
+    pointer-events: auto !important;
   }
 
   /* Sidebar */

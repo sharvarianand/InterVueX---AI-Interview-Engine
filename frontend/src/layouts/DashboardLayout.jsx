@@ -16,6 +16,7 @@ import {
     Bell,
     Search
 } from 'lucide-react';
+import { useUser, useClerk } from '@clerk/clerk-react';
 import { useStore } from '../store/useStore';
 
 const navItems = [
@@ -70,7 +71,9 @@ const navItems = [
 
 export default function DashboardLayout({ children }) {
     const location = useLocation();
-    const { sidebarOpen, toggleSidebar, user } = useStore();
+    const { sidebarOpen, toggleSidebar } = useStore();
+    const { user } = useUser();
+    const { signOut } = useClerk();
 
     const isActive = (item) => {
         if (item.exact) {
@@ -119,8 +122,8 @@ export default function DashboardLayout({ children }) {
                                 key={item.path}
                                 to={item.path}
                                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${active
-                                        ? 'bg-gradient-to-r from-accent-indigo/20 to-accent-purple/10 text-white border-l-2 border-accent-indigo'
-                                        : 'text-white/60 hover:text-white hover:bg-glass-light'
+                                    ? 'bg-gradient-to-r from-accent-indigo/20 to-accent-purple/10 text-white border-l-2 border-accent-indigo'
+                                    : 'text-white/60 hover:text-white hover:bg-glass-light'
                                     } ${!sidebarOpen && 'justify-center px-3'}`}
                             >
                                 <item.icon className={`w-5 h-5 flex-shrink-0 ${active && 'text-accent-indigo'}`} />
@@ -153,8 +156,12 @@ export default function DashboardLayout({ children }) {
                 {/* User Section */}
                 <div className="p-4 border-t border-glass-border">
                     <div className={`flex items-center gap-3 ${!sidebarOpen && 'justify-center'}`}>
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent-indigo to-accent-purple flex items-center justify-center flex-shrink-0">
-                            <span className="text-sm font-bold">U</span>
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent-indigo to-accent-purple flex items-center justify-center flex-shrink-0 overflow-hidden">
+                            {user?.imageUrl ? (
+                                <img src={user.imageUrl} alt={user.fullName} className="w-full h-full object-cover" />
+                            ) : (
+                                <span className="text-sm font-bold">{user?.firstName?.[0] || 'U'}</span>
+                            )}
                         </div>
                         {sidebarOpen && (
                             <motion.div
@@ -162,12 +169,16 @@ export default function DashboardLayout({ children }) {
                                 animate={{ opacity: 1 }}
                                 className="flex-1 min-w-0"
                             >
-                                <p className="text-sm font-medium truncate">User Name</p>
-                                <p className="text-xs text-white/50 truncate">user@email.com</p>
+                                <p className="text-sm font-medium truncate">{user?.fullName || 'User'}</p>
+                                <p className="text-xs text-white/50 truncate">{user?.primaryEmailAddress?.emailAddress}</p>
                             </motion.div>
                         )}
                         {sidebarOpen && (
-                            <button className="p-2 text-white/40 hover:text-white transition-colors">
+                            <button
+                                onClick={() => signOut()}
+                                className="p-2 text-white/40 hover:text-white transition-colors"
+                                title="Sign Out"
+                            >
                                 <LogOut className="w-4 h-4" />
                             </button>
                         )}

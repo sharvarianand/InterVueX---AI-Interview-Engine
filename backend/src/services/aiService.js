@@ -4,34 +4,44 @@ import config from '../config/index.js';
  * AIService - Unified AI provider interface
  * 
  * Features:
- * - Primary: OpenRouter (Claude, GPT-4, etc.)
- * - Fallback: Google Gemini
+ * - Primary: Google Gemini (fast and reliable)
+ * - Fallback: OpenRouter (Claude, GPT-4, etc.)
  * - Automatic retry and fallback handling
  */
 export class AIService {
     constructor() {
         this.primaryUrl = 'https://openrouter.ai/api/v1/chat/completions';
-        this.fallbackUrl = 'https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent';
+        this.geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
     }
 
     /**
      * Generate AI response with automatic fallback
      */
     async generate({ systemPrompt, userPrompt, responseFormat = 'text', maxRetries = 2 }) {
-        try {
-            // Try primary provider (OpenRouter)
-            return await this.callOpenRouter({ systemPrompt, userPrompt, responseFormat });
-        } catch (primaryError) {
-            console.warn('Primary AI provider failed:', primaryError.message);
+        // Try Gemini first (it's faster and we have a working key)
+        const geminiKey = config.ai.geminiKey;
+        const openRouterKey = config.ai.openRouterKey;
 
-            // Try fallback (Gemini)
+        if (geminiKey && geminiKey !== 'your_gemini_api_key') {
             try {
+                console.log('Trying Gemini API...');
                 return await this.callGemini({ systemPrompt, userPrompt });
-            } catch (fallbackError) {
-                console.error('Fallback AI provider failed:', fallbackError.message);
-                throw new Error('All AI providers unavailable');
+            } catch (geminiError) {
+                console.warn('Gemini API failed:', geminiError.message);
             }
         }
+
+        // Fallback to OpenRouter
+        if (openRouterKey && openRouterKey !== 'your_openrouter_api_key') {
+            try {
+                console.log('Trying OpenRouter API...');
+                return await this.callOpenRouter({ systemPrompt, userPrompt, responseFormat });
+            } catch (openRouterError) {
+                console.warn('OpenRouter API failed:', openRouterError.message);
+            }
+        }
+
+        throw new Error('All AI providers unavailable. Please check your API keys.');
     }
 
     /**
@@ -83,7 +93,7 @@ export class AIService {
             throw new Error('Gemini API key not configured');
         }
 
-        const url = `${this.fallbackUrl}?key=${apiKey}`;
+        const url = `${this.geminiUrl}?key=${apiKey}`;
 
         const response = await fetch(url, {
             method: 'POST',

@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { useAuth } from '@clerk/clerk-react';
+import { setTokenGetter } from './services/api';
 import LoadingScreen from './components/common/LoadingScreen';
 
 // Lazy load pages for better performance
@@ -40,6 +41,24 @@ const ProtectedRoute = ({ children }) => {
 };
 
 function App() {
+  const { getToken, isLoaded } = useAuth();
+
+  // Initialize token getter for API calls
+  useEffect(() => {
+    if (isLoaded && getToken) {
+      setTokenGetter(async () => {
+        try {
+          // Get Clerk session token - this will be sent as Bearer token
+          const token = await getToken();
+          return token;
+        } catch (error) {
+          console.warn('Failed to get Clerk token:', error);
+          return null;
+        }
+      });
+    }
+  }, [getToken, isLoaded]);
+
   return (
     <Suspense fallback={<LoadingScreen />}>
       <Routes>

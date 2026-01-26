@@ -21,6 +21,7 @@ import {
     Twitter,
     Linkedin
 } from 'lucide-react';
+import { SignUpButton, SignedIn, SignedOut } from '@clerk/clerk-react';
 import Navbar from '../components/common/Navbar';
 import AIAura from '../components/landing/AIAura';
 
@@ -156,12 +157,24 @@ export default function LandingPage() {
 
                             {/* CTAs */}
                             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                                <Link to="/dashboard" className="btn-primary group text-lg">
-                                    <span className="flex items-center justify-center gap-2">
-                                        Start Free Interview
-                                        <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                                    </span>
-                                </Link>
+                                <SignedOut>
+                                    <SignUpButton mode="modal">
+                                        <button className="btn-primary group text-lg">
+                                            <span className="flex items-center justify-center gap-2">
+                                                Start Free Interview
+                                                <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                            </span>
+                                        </button>
+                                    </SignUpButton>
+                                </SignedOut>
+                                <SignedIn>
+                                    <Link to="/dashboard" className="btn-primary group text-lg">
+                                        <span className="flex items-center justify-center gap-2">
+                                            Start Free Interview
+                                            <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                        </span>
+                                    </Link>
+                                </SignedIn>
                                 <a href="#how-it-works" className="btn-secondary flex items-center justify-center gap-2 text-lg">
                                     <Play className="w-5 h-5" />
                                     See How It Works
@@ -412,10 +425,20 @@ export default function LandingPage() {
                             <p className="text-white/60 text-lg mb-8 max-w-xl mx-auto">
                                 Join thousands of candidates who've boosted their confidence and landed their dream jobs with InterVueX.
                             </p>
-                            <Link to="/dashboard" className="btn-primary inline-flex items-center gap-2 text-lg">
-                                <span>Start Your Free Interview</span>
-                                <ArrowRight className="w-5 h-5" />
-                            </Link>
+                            <SignedOut>
+                                <SignUpButton mode="modal">
+                                    <button className="btn-primary inline-flex items-center gap-2 text-lg">
+                                        <span>Start Your Free Interview</span>
+                                        <ArrowRight className="w-5 h-5" />
+                                    </button>
+                                </SignUpButton>
+                            </SignedOut>
+                            <SignedIn>
+                                <Link to="/dashboard" className="btn-primary inline-flex items-center gap-2 text-lg">
+                                    <span>Start Your Free Interview</span>
+                                    <ArrowRight className="w-5 h-5" />
+                                </Link>
+                            </SignedIn>
                         </div>
                     </motion.div>
                 </div>

@@ -11,6 +11,8 @@ export const useStore = create(
 
             // Interview state
             currentInterview: null,
+            currentSession: null, // Active interview session from API
+            setCurrentSession: (session) => set({ currentSession: session }),
             interviewType: null, // 'technical', 'hr', 'project', 'techstack'
             interviewStatus: 'idle', // 'idle', 'setup', 'live', 'completed'
 
@@ -20,6 +22,7 @@ export const useStore = create(
                 techStack: [],
                 experience: '',
                 resume: null,
+                cvData: null,
                 persona: 'balanced', // 'friendly', 'balanced', 'challenging'
             },
 
@@ -32,6 +35,7 @@ export const useStore = create(
                     techStack: [],
                     experience: '',
                     resume: null,
+                    cvData: null,
                     persona: 'balanced',
                 },
                 interviewType: null,

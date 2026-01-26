@@ -17,8 +17,8 @@ export default {
     ai: {
         openRouterKey: process.env.OPENROUTER_API_KEY,
         geminiKey: process.env.GEMINI_API_KEY,
-        defaultModel: 'anthropic/claude-3-opus', // Primary model via OpenRouter
-        fallbackModel: 'gemini-pro', // Fallback to Gemini
+        defaultModel: 'meta-llama/llama-3.1-8b-instruct', // Fast, cheap, and distinct from Gemini (good for fallback)
+        fallbackModel: 'gemini-pro', // Fallback to Gemini direct
     },
 
     // Clerk Auth

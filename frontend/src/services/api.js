@@ -3,6 +3,16 @@
  */
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
+// Token getter function - will be set by Clerk
+let getTokenFn = null;
+
+/**
+ * Set the token getter function (should be called with Clerk's getToken)
+ */
+export function setTokenGetter(fn) {
+    getTokenFn = fn;
+}
+
 /**
  * Base API fetch wrapper with error handling
  */
@@ -14,13 +24,22 @@ async function apiFetch(endpoint, options = {}) {
             'Content-Type': 'application/json',
             ...options.headers,
         },
+        credentials: 'include', // Include cookies for Clerk session
         ...options,
     };
 
-    // Add auth token if available
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-        config.headers['Authorization'] = `Bearer ${token}`;
+    // Add auth token if available (Clerk token)
+    // Clerk middleware can use cookies, but we also send Bearer token for API routes
+    if (getTokenFn) {
+        try {
+            const token = await getTokenFn();
+            if (token) {
+                config.headers['Authorization'] = `Bearer ${token}`;
+            }
+        } catch (error) {
+            // Token getter failed - cookies should still work with clerkMiddleware
+            // Don't throw, let the backend handle auth via cookies
+        }
     }
 
     try {
@@ -28,7 +47,8 @@ async function apiFetch(endpoint, options = {}) {
 
         if (!response.ok) {
             const error = await response.json().catch(() => ({}));
-            throw new Error(error.message || `HTTP error! status: ${response.status}`);
+            const errorMessage = error.message || error.error?.message || `HTTP error! status: ${response.status}`;
+            throw new Error(errorMessage);
         }
 
         return await response.json();
@@ -151,6 +171,144 @@ export const reportsAPI = {
 };
 
 /**
+ * CV API
+ */
+export const cvAPI = {
+    upload: async (file) => {
+        const formData = new FormData();
+        formData.append('cv', file);
+        
+        const headers = {};
+        
+        // Add auth token if available
+        if (getTokenFn) {
+            try {
+                const token = await getTokenFn();
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+            } catch (error) {
+                console.warn('Failed to get auth token:', error);
+            }
+        }
+        
+        return fetch(`${API_BASE_URL}/cv/upload`, {
+            method: 'POST',
+            headers,
+            credentials: 'include',
+            body: formData
+        }).then(async (response) => {
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                throw new Error(error.message || error.error?.message || `HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        });
+    },
+};
+
+/**
+ * Project API
+ */
+export const projectAPI = {
+    analyze: (data) =>
+        apiFetch('/project/analyze', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        }),
+};
+
+/**
+ * Speech API
+ */
+export const speechAPI = {
+    transcribe: async (audioBlob, language = 'en-US') => {
+        const formData = new FormData();
+        formData.append('audio', audioBlob, 'recording.webm');
+        formData.append('language', language);
+        
+        const headers = {};
+        
+        // Add auth token if available
+        if (getTokenFn) {
+            try {
+                const token = await getTokenFn();
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+            } catch (error) {
+                console.warn('Failed to get auth token:', error);
+            }
+        }
+        
+        return fetch(`${API_BASE_URL}/speech/transcribe`, {
+            method: 'POST',
+            headers,
+            credentials: 'include',
+            body: formData
+        }).then(async (response) => {
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                throw new Error(error.message || error.error?.message || `HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        });
+    },
+
+    analyzeSpeakingStyle: async (transcript, audioBlob = null) => {
+        const formData = new FormData();
+        if (audioBlob) {
+            formData.append('audio', audioBlob, 'recording.webm');
+        }
+        formData.append('transcript', transcript);
+        
+        const headers = {};
+        
+        // Add auth token if available
+        if (getTokenFn) {
+            try {
+                const token = await getTokenFn();
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+            } catch (error) {
+                console.warn('Failed to get auth token:', error);
+            }
+        }
+        
+        return fetch(`${API_BASE_URL}/speech/analyze`, {
+            method: 'POST',
+            headers,
+            credentials: 'include',
+            body: formData
+        }).then(async (response) => {
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                throw new Error(error.message || error.error?.message || `HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        });
+    },
+
+    enhanceTTS: (text, options = {}) =>
+        apiFetch('/speech/enhance-tts', {
+            method: 'POST',
+            body: JSON.stringify({ text, options }),
+        }),
+};
+
+/**
+ * MCQ API
+ */
+export const mcqAPI = {
+    generate: (data) =>
+        apiFetch('/mcq/generate', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        }),
+};
+
+/**
  * Health check
  */
 export const healthCheck = () =>
@@ -162,5 +320,9 @@ export default {
     questions: questionsAPI,
     evaluation: evaluationAPI,
     reports: reportsAPI,
+    cv: cvAPI,
+    project: projectAPI,
+    speech: speechAPI,
+    mcq: mcqAPI,
     healthCheck,
 };

@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { interviewAPI, questionsAPI, evaluationAPI, reportsAPI } from '../services/api';
+import { interviewAPI, questionsAPI, evaluationAPI, reportsAPI, projectAPI } from '../services/api';
 import { useStore, useMemoryStore } from '../store/useStore';
 
 /**
@@ -15,7 +15,7 @@ export function useInterview() {
         addAnswer,
         setupData
     } = useStore();
-    const { addToHistory, updateMemory } = useMemoryStore();
+    const { addToHistory } = useMemoryStore();
 
     /**
      * Start a new interview session
@@ -31,6 +31,8 @@ export function useInterview() {
                 techStack: config.techStack || setupData.techStack,
                 experience: config.experience || setupData.experience,
                 persona: config.persona || setupData.persona,
+                cvData: config.cvData || setupData.cvData || null,
+                projectData: config.projectData || setupData.projectData || null,
                 userId: 'user_123', // TODO: Get from auth
             });
 
@@ -49,28 +51,50 @@ export function useInterview() {
     /**
      * Get next question
      */
-    const getNextQuestion = useCallback(async () => {
-        if (!currentSession) return null;
+    const getNextQuestion = useCallback(async (sessionOverride = null) => {
+        const session = sessionOverride || currentSession;
+        if (!session) {
+            console.error('No session available for question generation');
+            return null;
+        }
 
         setLoading(true);
         try {
-            const response = await questionsAPI.generate({
-                sessionId: currentSession.id,
-                type: currentSession.type,
-                role: currentSession.role,
-                techStack: currentSession.techStack,
-                experience: currentSession.experience,
-                previousAnswers: currentSession.answers || [],
+            console.log('Requesting question with session data:', {
+                sessionId: session.id,
+                type: session.type,
+                role: session.role,
+                techStack: session.techStack,
+                experience: session.experience
             });
+
+            const response = await questionsAPI.generate({
+                sessionId: session.id,
+                type: session.type || 'technical',
+                role: session.role || 'Software Engineer',
+                techStack: session.techStack || [],
+                experience: session.experience || 'mid',
+                previousAnswers: session.answers || [],
+                cvData: session.cvData || setupData?.cvData || null,
+                projectData: session.projectData || setupData?.projectData || null,
+            });
+
+            console.log('Question API response:', response);
+
+            if (!response || !response.question) {
+                console.error('Invalid response from question API:', response);
+                return null;
+            }
 
             return response.question;
         } catch (err) {
+            console.error('Error getting next question:', err);
             setError(err.message);
             return null;
         } finally {
             setLoading(false);
         }
-    }, [currentSession]);
+    }, [currentSession, setupData]);
 
     /**
      * Submit an answer and get evaluation

@@ -14,16 +14,54 @@ router.post('/generate', async (req, res, next) => {
             techStack,
             experience,
             previousAnswers,
-            performanceMemory
+            performanceMemory,
+            cvData,
+            projectData
         } = req.body;
 
-        const question = await questionEngine.generateQuestion({
+        // Validate required fields
+        if (!type) {
+            return res.status(400).json({
+                success: false,
+                error: 'Interview type is required'
+            });
+        }
+
+        // Ensure techStack is an array
+        const techStackArray = Array.isArray(techStack) ? techStack : (techStack ? [techStack] : []);
+
+        console.log('Generating question with:', {
             type,
-            role,
-            techStack,
-            experience,
+            role: role || 'Not specified',
+            techStack: techStackArray,
+            experience: experience || 'Not specified',
+            hasCvData: !!cvData,
+            hasProjectData: !!projectData
+        });
+
+        const question = await questionEngine.generateQuestion({
+            type: type || 'technical',
+            role: role || 'Software Engineer',
+            techStack: techStackArray,
+            experience: experience || 'mid',
             previousAnswers: previousAnswers || [],
-            memory: performanceMemory || {}
+            memory: performanceMemory || {},
+            cvData: cvData || null,
+            projectData: projectData || null
+        });
+
+        if (!question) {
+            console.error('Question generation returned null');
+            return res.status(500).json({
+                success: false,
+                error: 'Failed to generate question'
+            });
+        }
+
+        console.log('Question generated successfully:', {
+            id: question.id,
+            topic: question.topic,
+            hasText: !!question.text
         });
 
         res.json({
@@ -31,6 +69,7 @@ router.post('/generate', async (req, res, next) => {
             question
         });
     } catch (error) {
+        console.error('Error in question generation:', error);
         next(error);
     }
 });

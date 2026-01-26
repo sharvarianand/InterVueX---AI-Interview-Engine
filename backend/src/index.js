@@ -13,6 +13,10 @@ import interviewRoutes from './api/interview.js';
 import questionRoutes from './api/questions.js';
 import evaluationRoutes from './api/evaluation.js';
 import reportRoutes from './api/reports.js';
+import cvRoutes from './api/cv.js';
+import projectRoutes from './api/project.js';
+import speechRoutes from './api/speech.js';
+import mcqRoutes from './api/mcq.js';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler.js';
@@ -32,11 +36,15 @@ app.use(cors(config.cors));
 app.use(morgan('dev'));
 
 // Clerk Middleware
-app.use(clerkMiddleware());
+// Note: Requires CLERK_SECRET_KEY to be set in .env
+app.use(clerkMiddleware({
+    // Clerk middleware will automatically extract session from cookies or Authorization header
+    // Make sure CLERK_SECRET_KEY is set in your .env file
+}));
 
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Rate limiting
 app.use(rateLimiter);
@@ -57,6 +65,10 @@ app.use('/api/interview', interviewRoutes);
 app.use('/api/questions', questionRoutes);
 app.use('/api/evaluation', evaluationRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/cv', cvRoutes);
+app.use('/api/project', projectRoutes);
+app.use('/api/speech', speechRoutes);
+app.use('/api/mcq', mcqRoutes);
 
 // Error handling
 app.use(errorHandler);

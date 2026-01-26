@@ -43,6 +43,27 @@ const monthlyProgress = [
     { month: 'Jan', score: 78, interviews: 5 },
 ];
 
+// This Week's Score Progression
+const weeklyScoreProgression = [
+    { day: 'Mon', score: 72, interviews: 1 },
+    { day: 'Tue', score: 75, interviews: 1 },
+    { day: 'Wed', score: 78, interviews: 2 },
+    { day: 'Thu', score: 0, interviews: 0 },
+    { day: 'Fri', score: 80, interviews: 1 },
+    { day: 'Sat', score: 82, interviews: 1 },
+    { day: 'Sun', score: 85, interviews: 1 },
+];
+
+// Current Skill Map This Week
+const weeklySkillMap = [
+    { skill: 'DSA', score: 78, previousWeek: 72, change: +6 },
+    { skill: 'System Design', score: 65, previousWeek: 60, change: +5 },
+    { skill: 'Frontend', score: 85, previousWeek: 82, change: +3 },
+    { skill: 'Backend', score: 72, previousWeek: 70, change: +2 },
+    { skill: 'Database', score: 68, previousWeek: 65, change: +3 },
+    { skill: 'DevOps', score: 55, previousWeek: 52, change: +3 },
+];
+
 const skillTrends = [
     { name: 'Problem Solving', current: 85, previous: 72, change: 13 },
     { name: 'Communication', current: 82, previous: 75, change: 7 },
@@ -136,29 +157,32 @@ export default function ProgressPage() {
 
                 {/* Charts Row */}
                 <div className="grid lg:grid-cols-2 gap-6">
-                    {/* Score Progression */}
+                    {/* Score Progression This Week */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="glass-card p-6"
                     >
-                        <h3 className="text-lg font-display font-semibold mb-6">Score Progression</h3>
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-lg font-display font-semibold">Score Progression This Week</h3>
+                            <span className="text-xs text-white/60 bg-accent-indigo/20 px-2 py-1 rounded">This Week</span>
+                        </div>
                         <ResponsiveContainer width="100%" height={280}>
-                            <AreaChart data={monthlyProgress}>
+                            <AreaChart data={weeklyScoreProgression}>
                                 <defs>
-                                    <linearGradient id="progressGradient" x1="0" y1="0" x2="0" y2="1">
+                                    <linearGradient id="weeklyProgressGradient" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="#6366F1" stopOpacity={0.4} />
                                         <stop offset="95%" stopColor="#6366F1" stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                                 <XAxis
-                                    dataKey="month"
+                                    dataKey="day"
                                     tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 12 }}
                                     axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
                                 />
                                 <YAxis
-                                    domain={[50, 100]}
+                                    domain={[0, 100]}
                                     tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 12 }}
                                     axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
                                 />
@@ -173,23 +197,26 @@ export default function ProgressPage() {
                                     type="monotone"
                                     dataKey="score"
                                     stroke="#6366F1"
-                                    fill="url(#progressGradient)"
+                                    fill="url(#weeklyProgressGradient)"
                                     strokeWidth={2}
                                 />
                             </AreaChart>
                         </ResponsiveContainer>
                     </motion.div>
 
-                    {/* Skill Radar */}
+                    {/* Current Skill Map This Week */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 }}
                         className="glass-card p-6"
                     >
-                        <h3 className="text-lg font-display font-semibold mb-6">Current Skill Map</h3>
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-lg font-display font-semibold">Current Skill Map This Week</h3>
+                            <span className="text-xs text-white/60 bg-accent-indigo/20 px-2 py-1 rounded">This Week</span>
+                        </div>
                         <ResponsiveContainer width="100%" height={280}>
-                            <RadarChart data={currentSkills}>
+                            <RadarChart data={weeklySkillMap}>
                                 <PolarGrid stroke="rgba(255,255,255,0.1)" />
                                 <PolarAngleAxis
                                     dataKey="skill"

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Layers,
@@ -23,6 +23,7 @@ import {
     ResponsiveContainer
 } from 'recharts';
 import DashboardLayout from '../layouts/DashboardLayout';
+import { mcqAPI } from '../services/api';
 
 // Available tech stacks
 const techStacks = [
@@ -47,36 +48,60 @@ const difficulties = [
     { id: 'adaptive', label: 'Adaptive', description: 'AI adjusts difficulty', color: 'text-accent-indigo', bg: 'bg-accent-indigo/20' },
 ];
 
-// Sample question for evaluation
-const sampleQuestion = {
-    id: 1,
-    text: "Explain the difference between == and === operators in JavaScript. When would you use each?",
-    topic: "JavaScript Basics",
-    difficulty: "Easy",
-    options: [
-        { id: 'a', text: "They are the same, === is just a newer syntax" },
-        { id: 'b', text: "== compares only values, === compares values and types" },
-        { id: 'c', text: "=== compares only values, == compares values and types" },
-        { id: 'd', text: "== is for strings, === is for numbers" }
-    ],
-    correctAnswer: 'b',
-    explanation: "The == operator performs type coercion before comparison, while === (strict equality) compares both value and type without coercion. Use === for more predictable comparisons."
-};
-
 export default function TechStackPage() {
     const [selectedStack, setSelectedStack] = useState(null);
     const [selectedDifficulty, setSelectedDifficulty] = useState(null);
     const [evaluationStarted, setEvaluationStarted] = useState(false);
-    const [currentQuestion, setCurrentQuestion] = useState(0);
+    const [loadingQuestions, setLoadingQuestions] = useState(false);
+    const [questions, setQuestions] = useState([]);
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [selectedAnswer, setSelectedAnswer] = useState(null);
     const [showResult, setShowResult] = useState(false);
+    const [userAnswers, setUserAnswers] = useState([]);
     const [score, setScore] = useState({ correct: 0, total: 0 });
     const [evaluationComplete, setEvaluationComplete] = useState(false);
 
-    const handleStartEvaluation = () => {
-        setEvaluationStarted(true);
-        setCurrentQuestion(0);
-        setScore({ correct: 0, total: 0 });
+    // Prevent accidental navigation
+    useEffect(() => {
+        const handleBeforeUnload = (e) => {
+            if (evaluationStarted && !evaluationComplete) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [evaluationStarted, evaluationComplete]);
+
+    const handleStartEvaluation = async () => {
+        if (!selectedStack || !selectedDifficulty) return;
+
+        setLoadingQuestions(true);
+        setEvaluationStarted(false);
+
+        try {
+            // Generate 10 MCQs dynamically
+            const response = await mcqAPI.generate({
+                techStack: selectedStack.name,
+                difficulty: selectedDifficulty.id,
+                count: 10
+            });
+
+            setQuestions(response.questions || []);
+            setCurrentQuestionIndex(0);
+            setScore({ correct: 0, total: 0 });
+            setUserAnswers([]);
+            setSelectedAnswer(null);
+            setShowResult(false);
+            setEvaluationComplete(false);
+            setEvaluationStarted(true);
+        } catch (error) {
+            console.error('Error generating MCQs:', error);
+            alert('Failed to generate questions. Please try again.');
+        } finally {
+            setLoadingQuestions(false);
+        }
     };
 
     const handleAnswerSelect = (optionId) => {
@@ -84,19 +109,34 @@ export default function TechStackPage() {
     };
 
     const handleSubmitAnswer = () => {
-        const isCorrect = selectedAnswer === sampleQuestion.correctAnswer;
+        if (!selectedAnswer || questions.length === 0) return;
+
+        const currentQ = questions[currentQuestionIndex];
+        const isCorrect = selectedAnswer === currentQ.correctAnswer;
+
+        // Save user's answer
+        setUserAnswers(prev => [...prev, {
+            questionId: currentQ.id,
+            selectedAnswer,
+            correctAnswer: currentQ.correctAnswer,
+            isCorrect
+        }]);
+
+        // Update score
         setScore(prev => ({
             correct: prev.correct + (isCorrect ? 1 : 0),
             total: prev.total + 1
         }));
+
         setShowResult(true);
     };
 
     const handleNextQuestion = () => {
-        if (currentQuestion >= 4) {
+        if (currentQuestionIndex >= questions.length - 1) {
+            // All questions answered
             setEvaluationComplete(true);
         } else {
-            setCurrentQuestion(prev => prev + 1);
+            setCurrentQuestionIndex(prev => prev + 1);
             setSelectedAnswer(null);
             setShowResult(false);
         }
@@ -107,10 +147,18 @@ export default function TechStackPage() {
         setSelectedDifficulty(null);
         setEvaluationStarted(false);
         setEvaluationComplete(false);
-        setCurrentQuestion(0);
+        setCurrentQuestionIndex(0);
         setSelectedAnswer(null);
         setShowResult(false);
         setScore({ correct: 0, total: 0 });
+        setQuestions([]);
+        setUserAnswers([]);
+    };
+
+    const handleEarlyExit = () => {
+        if (window.confirm("Are you sure? You will lose all progress.")) {
+            handleReset();
+        }
     };
 
     // Radar data for results
@@ -151,8 +199,8 @@ export default function TechStackPage() {
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             className={`p-4 rounded-xl text-center transition-all ${selectedStack?.id === stack.id
-                                    ? 'bg-gradient-to-br from-accent-indigo/30 to-accent-purple/30 border-2 border-accent-indigo shadow-glow-sm'
-                                    : 'glass-card-hover border-2 border-transparent'
+                                ? 'bg-gradient-to-br from-accent-indigo/30 to-accent-purple/30 border-2 border-accent-indigo shadow-glow-sm'
+                                : 'glass-card-hover border-2 border-transparent'
                                 }`}
                         >
                             <div className="text-3xl mb-2">{stack.icon}</div>
@@ -183,8 +231,8 @@ export default function TechStackPage() {
                                 key={diff.id}
                                 onClick={() => setSelectedDifficulty(diff)}
                                 className={`p-5 rounded-xl text-left transition-all ${selectedDifficulty?.id === diff.id
-                                        ? `${diff.bg} border-2 border-current ${diff.color}`
-                                        : 'glass-card-hover border-2 border-transparent'
+                                    ? `${diff.bg} border-2 border-current ${diff.color}`
+                                    : 'glass-card-hover border-2 border-transparent'
                                     }`}
                             >
                                 <div className={`font-semibold mb-1 ${selectedDifficulty?.id === diff.id ? diff.color : ''}`}>
@@ -210,16 +258,29 @@ export default function TechStackPage() {
                             <div>
                                 <div className="font-semibold">{selectedStack.name} Evaluation</div>
                                 <div className="text-sm text-white/60">
-                                    {selectedDifficulty.label} • 5 Questions • ~10 min
+                                    {selectedDifficulty.label} • 10 Questions • ~15 min
                                 </div>
                             </div>
                         </div>
                     </div>
                     <br />
-                    <button onClick={handleStartEvaluation} className="btn-primary text-lg px-8">
+                    <button
+                        onClick={handleStartEvaluation}
+                        disabled={loadingQuestions}
+                        className={`btn-primary text-lg px-8 ${loadingQuestions && 'opacity-50 cursor-not-allowed'}`}
+                    >
                         <span className="flex items-center gap-2">
-                            <Zap className="w-5 h-5" />
-                            Start Evaluation
+                            {loadingQuestions ? (
+                                <>
+                                    <Brain className="w-5 h-5 animate-pulse" />
+                                    Generating Questions...
+                                </>
+                            ) : (
+                                <>
+                                    <Zap className="w-5 h-5" />
+                                    Start Evaluation
+                                </>
+                            )}
                         </span>
                     </button>
                 </motion.div>
@@ -228,157 +289,188 @@ export default function TechStackPage() {
     );
 
     // Render evaluation question
-    const renderEvaluation = () => (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="max-w-3xl mx-auto space-y-6"
-        >
-            {/* Progress Header */}
-            <div className="glass-card p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className="text-2xl">{selectedStack.icon}</div>
-                    <div>
-                        <div className="font-semibold">{selectedStack.name}</div>
-                        <div className="text-sm text-white/50">{selectedDifficulty.label} Level</div>
+    const renderEvaluation = () => {
+        if (questions.length === 0) {
+            return (
+                <div className="text-center py-12">
+                    <Brain className="w-16 h-16 text-accent-indigo mx-auto mb-4 animate-pulse" />
+                    <p className="text-white/60">Loading questions...</p>
+                </div>
+            );
+        }
+
+        const currentQ = questions[currentQuestionIndex];
+        if (!currentQ) return null;
+
+        return (
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="max-w-3xl w-full mx-auto space-y-6"
+            >
+                {/* Header for Full Screen Mode */}
+                <div className="flex items-center justify-between mb-8">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-indigo to-accent-purple flex items-center justify-center">
+                            <Layers className="w-6 h-6 text-white" />
+                        </div>
+                        <h1 className="text-xl font-display font-bold">Evaluation In Progress</h1>
+                    </div>
+                    <button
+                        onClick={handleEarlyExit}
+                        className="px-4 py-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 text-sm font-medium transition-colors"
+                    >
+                        Exit Evaluation
+                    </button>
+                </div>
+
+                {/* Progress Header */}
+                <div className="glass-card p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="text-2xl">{selectedStack.icon}</div>
+                        <div>
+                            <div className="font-semibold">{selectedStack.name}</div>
+                            <div className="text-sm text-white/50">{selectedDifficulty.label} Level</div>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <div className="text-sm text-white/60">
+                            Question {currentQuestionIndex + 1}/{questions.length}
+                        </div>
+                        <div className="w-32 h-2 bg-dark-600 rounded-full overflow-hidden">
+                            <motion.div
+                                className="h-full bg-gradient-to-r from-accent-indigo to-accent-purple"
+                                initial={{ width: 0 }}
+                                animate={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }}
+                            />
+                        </div>
                     </div>
                 </div>
-                <div className="flex items-center gap-4">
-                    <div className="text-sm text-white/60">
-                        Question {currentQuestion + 1}/5
-                    </div>
-                    <div className="w-32 h-2 bg-dark-600 rounded-full overflow-hidden">
-                        <motion.div
-                            className="h-full bg-gradient-to-r from-accent-indigo to-accent-purple"
-                            initial={{ width: 0 }}
-                            animate={{ width: `${((currentQuestion + 1) / 5) * 100}%` }}
-                        />
-                    </div>
-                </div>
-            </div>
 
-            {/* Question Card */}
-            <AnimatePresence mode="wait">
-                <motion.div
-                    key={currentQuestion}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    className="glass-card p-8"
-                >
-                    <div className="flex items-center gap-3 mb-6">
-                        <span className="badge">{sampleQuestion.topic}</span>
-                        <span className={`badge ${sampleQuestion.difficulty === 'Easy' ? 'badge-success' :
-                                sampleQuestion.difficulty === 'Medium' ? 'badge-warning' : 'badge-danger'
-                            }`}>
-                            {sampleQuestion.difficulty}
-                        </span>
-                    </div>
+                {/* Question Card */}
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={currentQuestionIndex}
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        className="glass-card p-8"
+                    >
+                        <div className="flex items-center gap-3 mb-6">
+                            <span className="badge">{currentQ.topic || selectedStack.name}</span>
+                            <span className={`badge ${currentQ.difficulty === 'easy' ? 'badge-success' :
+                                currentQ.difficulty === 'medium' ? 'badge-warning' : 'badge-danger'
+                                }`}>
+                                {currentQ.difficulty || selectedDifficulty.label}
+                            </span>
+                        </div>
 
-                    <h2 className="text-xl font-display font-semibold mb-8">
-                        {sampleQuestion.text}
-                    </h2>
+                        <h2 className="text-xl font-display font-semibold mb-8">
+                            {currentQ.text}
+                        </h2>
 
-                    {/* Options */}
-                    <div className="space-y-3">
-                        {sampleQuestion.options.map((option) => {
-                            const isSelected = selectedAnswer === option.id;
-                            const isCorrect = option.id === sampleQuestion.correctAnswer;
-                            const showCorrectness = showResult && (isSelected || isCorrect);
+                        {/* Options */}
+                        <div className="space-y-3">
+                            {currentQ.options.map((option) => {
+                                const isSelected = selectedAnswer === option.id;
+                                const isCorrect = option.id === currentQ.correctAnswer;
+                                const showCorrectness = showResult && (isSelected || isCorrect);
 
-                            return (
-                                <button
-                                    key={option.id}
-                                    onClick={() => !showResult && handleAnswerSelect(option.id)}
-                                    disabled={showResult}
-                                    className={`w-full p-4 rounded-xl text-left transition-all flex items-center gap-4 ${showCorrectness
+                                return (
+                                    <button
+                                        key={option.id}
+                                        onClick={() => !showResult && handleAnswerSelect(option.id)}
+                                        disabled={showResult}
+                                        className={`w-full p-4 rounded-xl text-left transition-all flex items-center gap-4 ${showCorrectness
                                             ? isCorrect
                                                 ? 'bg-emerald-500/20 border-2 border-emerald-500/50'
                                                 : 'bg-red-500/20 border-2 border-red-500/50'
                                             : isSelected
                                                 ? 'bg-accent-indigo/20 border-2 border-accent-indigo'
                                                 : 'glass-card hover:bg-glass-medium border-2 border-transparent'
-                                        }`}
-                                >
-                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-semibold ${showCorrectness
+                                            }`}
+                                    >
+                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-semibold ${showCorrectness
                                             ? isCorrect
                                                 ? 'bg-emerald-500/30 text-emerald-400'
                                                 : 'bg-red-500/30 text-red-400'
                                             : isSelected
                                                 ? 'bg-accent-indigo text-white'
                                                 : 'bg-dark-600 text-white/60'
-                                        }`}>
-                                        {showCorrectness ? (
-                                            isCorrect ? <CheckCircle2 className="w-5 h-5" /> : <XCircle className="w-5 h-5" />
-                                        ) : (
-                                            option.id.toUpperCase()
-                                        )}
-                                    </div>
-                                    <span className={showCorrectness && !isCorrect && isSelected ? 'line-through text-white/50' : ''}>
-                                        {option.text}
+                                            }`}>
+                                            {showCorrectness ? (
+                                                isCorrect ? <CheckCircle2 className="w-5 h-5" /> : <XCircle className="w-5 h-5" />
+                                            ) : (
+                                                option.id.toUpperCase()
+                                            )}
+                                        </div>
+                                        <span className={showCorrectness && !isCorrect && isSelected ? 'line-through text-white/50' : ''}>
+                                            {option.text}
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {/* Explanation */}
+                        {showResult && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="mt-6 p-4 rounded-xl bg-accent-indigo/10 border border-accent-indigo/20"
+                            >
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Brain className="w-5 h-5 text-accent-indigo" />
+                                    <span className="font-medium text-accent-indigo">Explanation</span>
+                                </div>
+                                <p className="text-sm text-white/70">{currentQ.explanation}</p>
+                            </motion.div>
+                        )}
+
+                        {/* Action Button */}
+                        <div className="mt-8 flex justify-end">
+                            {!showResult ? (
+                                <button
+                                    onClick={handleSubmitAnswer}
+                                    disabled={!selectedAnswer}
+                                    className={`btn-primary ${!selectedAnswer && 'opacity-50 cursor-not-allowed'}`}
+                                >
+                                    <span>Submit Answer</span>
+                                </button>
+                            ) : (
+                                <button onClick={handleNextQuestion} className="btn-primary">
+                                    <span className="flex items-center gap-2">
+                                        {currentQuestionIndex >= questions.length - 1 ? 'See Results' : 'Next Question'}
+                                        <ChevronRight className="w-5 h-5" />
                                     </span>
                                 </button>
-                            );
-                        })}
+                            )}
+                        </div>
+                    </motion.div>
+                </AnimatePresence>
+
+                {/* Score Tracker */}
+                <div className="glass-card p-4 flex items-center justify-center gap-8">
+                    <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                        <span className="font-semibold text-emerald-400">{score.correct}</span>
+                        <span className="text-white/50">Correct</span>
                     </div>
-
-                    {/* Explanation */}
-                    {showResult && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="mt-6 p-4 rounded-xl bg-accent-indigo/10 border border-accent-indigo/20"
-                        >
-                            <div className="flex items-center gap-2 mb-2">
-                                <Brain className="w-5 h-5 text-accent-indigo" />
-                                <span className="font-medium text-accent-indigo">Explanation</span>
-                            </div>
-                            <p className="text-sm text-white/70">{sampleQuestion.explanation}</p>
-                        </motion.div>
-                    )}
-
-                    {/* Action Button */}
-                    <div className="mt-8 flex justify-end">
-                        {!showResult ? (
-                            <button
-                                onClick={handleSubmitAnswer}
-                                disabled={!selectedAnswer}
-                                className={`btn-primary ${!selectedAnswer && 'opacity-50 cursor-not-allowed'}`}
-                            >
-                                <span>Submit Answer</span>
-                            </button>
-                        ) : (
-                            <button onClick={handleNextQuestion} className="btn-primary">
-                                <span className="flex items-center gap-2">
-                                    {currentQuestion >= 4 ? 'See Results' : 'Next Question'}
-                                    <ChevronRight className="w-5 h-5" />
-                                </span>
-                            </button>
-                        )}
+                    <div className="w-px h-6 bg-glass-border" />
+                    <div className="flex items-center gap-2">
+                        <XCircle className="w-5 h-5 text-red-400" />
+                        <span className="font-semibold text-red-400">{score.total - score.correct}</span>
+                        <span className="text-white/50">Incorrect</span>
                     </div>
-                </motion.div>
-            </AnimatePresence>
-
-            {/* Score Tracker */}
-            <div className="glass-card p-4 flex items-center justify-center gap-8">
-                <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                    <span className="font-semibold text-emerald-400">{score.correct}</span>
-                    <span className="text-white/50">Correct</span>
                 </div>
-                <div className="w-px h-6 bg-glass-border" />
-                <div className="flex items-center gap-2">
-                    <XCircle className="w-5 h-5 text-red-400" />
-                    <span className="font-semibold text-red-400">{score.total - score.correct}</span>
-                    <span className="text-white/50">Incorrect</span>
-                </div>
-            </div>
-        </motion.div>
-    );
+            </motion.div>
+        );
+    };
 
     // Render results
     const renderResults = () => {
-        const percentage = Math.round((score.correct / 5) * 100);
+        const totalQuestions = questions.length || 10;
+        const percentage = Math.round((score.correct / totalQuestions) * 100);
 
         return (
             <motion.div
@@ -408,7 +500,7 @@ export default function TechStackPage() {
                         {percentage}%
                     </div>
                     <div className="text-white/60 mb-6">
-                        {score.correct} out of 5 questions correct
+                        {score.correct} out of {questions.length} questions correct
                     </div>
                     <div className="flex justify-center gap-4">
                         {percentage >= 80 ? (
@@ -486,14 +578,17 @@ export default function TechStackPage() {
                         Try Another Stack
                     </button>
                     <button onClick={() => {
-                        setEvaluationComplete(false);
-                        setEvaluationStarted(false);
-                        setSelectedDifficulty(difficulties.find(d => d.id === 'medium'));
-                        setTimeout(() => handleStartEvaluation(), 100);
+                        handleReset();
+                        // Regenerate questions with same stack and difficulty
+                        setTimeout(() => {
+                            setSelectedStack(selectedStack);
+                            setSelectedDifficulty(selectedDifficulty);
+                            handleStartEvaluation();
+                        }, 100);
                     }} className="btn-primary">
                         <span className="flex items-center gap-2">
                             <Play className="w-5 h-5" />
-                            Practice Again
+                            Practice Again (New Questions)
                         </span>
                     </button>
                 </div>
@@ -501,13 +596,20 @@ export default function TechStackPage() {
         );
     };
 
+    // Full screen mode during evaluation
+    if (evaluationStarted && !evaluationComplete) {
+        return (
+            <div className="min-h-screen bg-dark-900 flex flex-col p-6 overflow-y-auto">
+                {renderEvaluation()}
+            </div>
+        );
+    }
+
     return (
         <DashboardLayout>
             {evaluationComplete
                 ? renderResults()
-                : evaluationStarted
-                    ? renderEvaluation()
-                    : renderStackSelection()
+                : renderStackSelection()
             }
         </DashboardLayout>
     );
