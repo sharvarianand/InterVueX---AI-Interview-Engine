@@ -10,6 +10,8 @@
 [![Node.js](https://img.shields.io/badge/Node.js-20+-339933?logo=node.js)](https://nodejs.org/)
 [![Supabase](https://img.shields.io/badge/Supabase-2.0-3ECF8E?logo=supabase)](https://supabase.com/)
 
+[**🚀 Live Demo**](https://inter-vue-x-ai-interview-engine.vercel.app/)
+
 </div>
 
 ---
@@ -124,7 +126,7 @@ Backend runs at: **http://localhost:3001/**
 ### Frontend (`frontend/.env`)
 
 ```env
-VITE_API_URL=http://localhost:3001/api
+VITE_API_URL=http://localhost:3001/api  # Or your deployed backend URL
 VITE_CLERK_PUBLISHABLE_KEY=your_clerk_key
 ```
 
@@ -158,7 +160,7 @@ CLERK_SECRET_KEY=your_clerk_secret
 | 📊 **Tech Stack Eval** | Quick focused assessments |
 | 🔒 **Proctored Sessions** | Camera monitoring, fullscreen |
 | 📈 **Recruiter Reports** | Detailed analytics with charts |
-| 🌟 **AI Aura Animation** | Beautiful organic gradient sphere |
+
 
 ---
 
@@ -205,21 +207,20 @@ CLERK_SECRET_KEY=your_clerk_secret
 
 ## 🚀 Deployment
 
-### Frontend (Vercel/Netlify)
+### Monitor & Status
+[![](https://img.shields.io/badge/Vercel-Deployed-black?logo=vercel)](https://inter-vue-x-ai-interview-engine.vercel.app/)
 
-```bash
-cd frontend
-npm run build
-# Deploy dist/ folder
-```
+### Frontend (Vercel)
+The frontend is configured for automatic deployment on Vercel.
+- **Root Directory**: `frontend` (or use `vercel.json` at root)
+- **Framework Preset**: Vite
+- **Build Command**: `npx vite build`
+- **Install Command**: `npm install`
 
-### Backend (Railway/Render/Fly.io)
-
-```bash
-cd backend
-npm start
-# Uses src/index.js as entry
-```
+### Backend (Hugging Face / Render)
+The backend is Dockerized and ready for Hugging Face Spaces or Render.
+- **Docker**: Included `Dockerfile` exposes port 7860.
+- **Env Variables**: Add all secrets from `.env` to your cloud provider settings.
 
 ---
 
