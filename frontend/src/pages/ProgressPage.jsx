@@ -28,7 +28,11 @@ import {
     PolarGrid,
     PolarAngleAxis,
     PolarRadiusAxis,
-    Radar
+    Radar,
+    Cell,
+    PieChart,
+    Pie,
+    Sector
 } from 'recharts';
 import DashboardLayout from '../layouts/DashboardLayout';
 import { Link } from 'react-router-dom';
@@ -155,12 +159,76 @@ export default function ProgressPage() {
                     ))}
                 </div>
 
-                {/* Charts Row */}
+                {/* Charts Row 1 - Direct Progress */}
                 <div className="grid lg:grid-cols-2 gap-6">
+                    {/* Monthly Growth Trend */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="glass-card p-6"
+                    >
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-lg font-display font-semibold">Monthly Growth Trend</h3>
+                            <div className="flex items-center gap-2">
+                                <span className="flex items-center gap-1 text-xs text-white/40">
+                                    <div className="w-2 h-2 rounded-full bg-accent-indigo" />
+                                    Avg. Score
+                                </span>
+                                <span className="flex items-center gap-1 text-xs text-white/40">
+                                    <div className="w-2 h-2 rounded-full bg-accent-purple" />
+                                    Interviews
+                                </span>
+                            </div>
+                        </div>
+                        <ResponsiveContainer width="100%" height={280}>
+                            <LineChart data={monthlyProgress}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                                <XAxis
+                                    dataKey="month"
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }}
+                                    dy={10}
+                                />
+                                <YAxis
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }}
+                                />
+                                <Tooltip
+                                    contentStyle={{
+                                        backgroundColor: '#1C242E',
+                                        border: '1px solid rgba(255,255,255,0.1)',
+                                        borderRadius: '12px',
+                                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+                                    }}
+                                    itemStyle={{ fontSize: '12px' }}
+                                />
+                                <Line
+                                    type="monotone"
+                                    dataKey="score"
+                                    stroke="#6366F1"
+                                    strokeWidth={3}
+                                    dot={{ r: 4, fill: '#6366F1', strokeWidth: 2, stroke: '#1C242E' }}
+                                    activeDot={{ r: 6, strokeWidth: 0 }}
+                                />
+                                <Line
+                                    type="monotone"
+                                    dataKey="interviews"
+                                    stroke="#8B5CF6"
+                                    strokeWidth={2}
+                                    strokeDasharray="5 5"
+                                    dot={false}
+                                />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </motion.div>
+
                     {/* Score Progression This Week */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
                         className="glass-card p-6"
                     >
                         <div className="flex items-center justify-between mb-6">
@@ -175,22 +243,25 @@ export default function ProgressPage() {
                                         <stop offset="95%" stopColor="#6366F1" stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                                 <XAxis
                                     dataKey="day"
+                                    axisLine={false}
+                                    tickLine={false}
                                     tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 12 }}
-                                    axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
+                                    dy={10}
                                 />
                                 <YAxis
                                     domain={[0, 100]}
+                                    axisLine={false}
+                                    tickLine={false}
                                     tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 12 }}
-                                    axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
                                 />
                                 <Tooltip
                                     contentStyle={{
                                         backgroundColor: '#1C242E',
                                         border: '1px solid rgba(255,255,255,0.1)',
-                                        borderRadius: '8px'
+                                        borderRadius: '12px'
                                     }}
                                 />
                                 <Area
@@ -198,25 +269,27 @@ export default function ProgressPage() {
                                     dataKey="score"
                                     stroke="#6366F1"
                                     fill="url(#weeklyProgressGradient)"
-                                    strokeWidth={2}
+                                    strokeWidth={3}
                                 />
                             </AreaChart>
                         </ResponsiveContainer>
                     </motion.div>
+                </div>
 
+                {/* Charts Row 2 - Skills */}
+                <div className="grid lg:grid-cols-2 gap-6">
                     {/* Current Skill Map This Week */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 }}
                         className="glass-card p-6"
                     >
                         <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-lg font-display font-semibold">Current Skill Map This Week</h3>
-                            <span className="text-xs text-white/60 bg-accent-indigo/20 px-2 py-1 rounded">This Week</span>
+                            <h3 className="text-lg font-display font-semibold">Current Skill Map</h3>
+                            <span className="text-xs text-white/60 bg-accent-indigo/20 px-2 py-1 rounded">Performance Matrix</span>
                         </div>
                         <ResponsiveContainer width="100%" height={280}>
-                            <RadarChart data={weeklySkillMap}>
+                            <RadarChart data={weeklySkillMap} cx="50%" cy="50%" outerRadius="80%">
                                 <PolarGrid stroke="rgba(255,255,255,0.1)" />
                                 <PolarAngleAxis
                                     dataKey="skill"
@@ -225,17 +298,83 @@ export default function ProgressPage() {
                                 <PolarRadiusAxis
                                     angle={30}
                                     domain={[0, 100]}
-                                    tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }}
+                                    tick={false}
                                 />
                                 <Radar
-                                    name="Score"
+                                    name="Current Score"
                                     dataKey="score"
                                     stroke="#8B5CF6"
                                     fill="#8B5CF6"
                                     fillOpacity={0.3}
+                                    strokeWidth={3}
+                                />
+                                <Radar
+                                    name="Previous Week"
+                                    dataKey="previousWeek"
+                                    stroke="#6366F1"
+                                    fill="#6366F1"
+                                    fillOpacity={0.1}
                                     strokeWidth={2}
+                                    strokeDasharray="4 4"
+                                />
+                                <Tooltip
+                                    contentStyle={{
+                                        backgroundColor: '#1C242E',
+                                        border: '1px solid rgba(255,255,255,0.1)',
+                                        borderRadius: '12px'
+                                    }}
                                 />
                             </RadarChart>
+                        </ResponsiveContainer>
+                    </motion.div>
+
+                    {/* Weekly Activity Heatmap style BarChart */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                        className="glass-card p-6"
+                    >
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-lg font-display font-semibold">Activity Intensity</h3>
+                            <TrendingUp className="w-5 h-5 text-emerald-400" />
+                        </div>
+                        <ResponsiveContainer width="100%" height={280}>
+                            <BarChart data={weeklyActivity}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                                <XAxis
+                                    dataKey="day"
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 12 }}
+                                    dy={10}
+                                />
+                                <YAxis
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 12 }}
+                                />
+                                <Tooltip
+                                    cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                                    contentStyle={{
+                                        backgroundColor: '#1C242E',
+                                        border: '1px solid rgba(255,255,255,0.1)',
+                                        borderRadius: '12px'
+                                    }}
+                                    formatter={(value) => [`${value} min`, 'Practice Time']}
+                                />
+                                <Bar
+                                    dataKey="minutes"
+                                    radius={[6, 6, 0, 0]}
+                                >
+                                    {weeklyActivity.map((entry, index) => (
+                                        <Cell
+                                            key={`cell-${index}`}
+                                            fill={entry.minutes > 60 ? '#8B5CF6' : entry.minutes > 30 ? '#6366F1' : '#4F46E5'}
+                                        />
+                                    ))}
+                                </Bar>
+                            </BarChart>
                         </ResponsiveContainer>
                     </motion.div>
                 </div>
@@ -344,7 +483,7 @@ export default function ProgressPage() {
                                 <div key={index} className="flex items-center justify-between p-4 rounded-xl bg-dark-700/30">
                                     <div className="flex items-center gap-4">
                                         <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${area.trend === 'improving' ? 'bg-emerald-500/20' :
-                                                area.trend === 'stable' ? 'bg-amber-500/20' : 'bg-red-500/20'
+                                            area.trend === 'stable' ? 'bg-amber-500/20' : 'bg-red-500/20'
                                             }`}>
                                             {area.trend === 'improving' ? (
                                                 <TrendingUp className="w-5 h-5 text-emerald-400" />
@@ -381,8 +520,8 @@ export default function ProgressPage() {
                                 <div
                                     key={index}
                                     className={`p-4 rounded-xl text-center transition-all ${achievement.earned
-                                            ? 'bg-gradient-to-br from-accent-indigo/20 to-accent-purple/20 border border-accent-indigo/30'
-                                            : 'bg-dark-700/30 opacity-50'
+                                        ? 'bg-gradient-to-br from-accent-indigo/20 to-accent-purple/20 border border-accent-indigo/30'
+                                        : 'bg-dark-700/30 opacity-50'
                                         }`}
                                 >
                                     <div className="text-3xl mb-2">{achievement.icon}</div>
@@ -399,43 +538,93 @@ export default function ProgressPage() {
                     </motion.div>
                 </div>
 
-                {/* AI Insights */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="glass-card p-6"
-                >
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-indigo to-accent-purple flex items-center justify-center">
-                            <Brain className="w-5 h-5 text-white" />
+                {/* Final Row: Skill Distribution & AI Insights */}
+                <div className="grid lg:grid-cols-3 gap-6">
+                    {/* Skill Distribution */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="glass-card p-6"
+                    >
+                        <h3 className="text-lg font-display font-semibold mb-6">Skill Distribution</h3>
+                        <ResponsiveContainer width="100%" height={300}>
+                            <PieChart>
+                                <Pie
+                                    data={currentSkills}
+                                    cx="50%"
+                                    cy="50%"
+                                    innerRadius={60}
+                                    outerRadius={80}
+                                    paddingAngle={5}
+                                    dataKey="score"
+                                >
+                                    {currentSkills.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={['#6366F1', '#8B5CF6', '#EC4899', '#3B82F6', '#10B981', '#F59E0B'][index % 6]} />
+                                    ))}
+                                </Pie>
+                                <Tooltip
+                                    contentStyle={{
+                                        backgroundColor: '#1C242E',
+                                        border: '1px solid rgba(255,255,255,0.1)',
+                                        borderRadius: '12px'
+                                    }}
+                                />
+                            </PieChart>
+                        </ResponsiveContainer>
+                        <div className="mt-4 grid grid-cols-2 gap-2">
+                            {currentSkills.map((s, i) => (
+                                <div key={i} className="flex items-center gap-2 text-xs text-white/50">
+                                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: ['#6366F1', '#8B5CF6', '#EC4899', '#3B82F6', '#10B981', '#F59E0B'][i % 6] }} />
+                                    {s.skill}
+                                </div>
+                            ))}
                         </div>
-                        <div>
-                            <h3 className="text-lg font-display font-semibold">AI Insights</h3>
-                            <p className="text-sm text-white/50">Personalized recommendations based on your performance</p>
-                        </div>
-                    </div>
+                    </motion.div>
 
-                    <div className="grid md:grid-cols-3 gap-4">
-                        <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-                            <h4 className="font-medium text-emerald-400 mb-2">🎯 Your Strength</h4>
-                            <p className="text-sm text-white/70">
-                                Problem-solving skills have improved by 18% this month. Your structured approach to breaking down problems is excellent.
-                            </p>
+                    {/* AI Insights (Occupying 2/3 now) */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                        className="lg:col-span-2 glass-card p-6"
+                    >
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-indigo to-accent-purple flex items-center justify-center">
+                                <Brain className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-display font-semibold">Adaptive Learning Insights</h3>
+                                <p className="text-sm text-white/50">Generative recommendations for your next session</p>
+                            </div>
                         </div>
-                        <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
-                            <h4 className="font-medium text-amber-400 mb-2">📈 Focus This Week</h4>
-                            <p className="text-sm text-white/70">
-                                Dedicate 2-3 sessions to Dynamic Programming. Use the pattern-based approach you've been developing.
-                            </p>
+
+                        <div className="grid md:grid-cols-2 gap-4">
+                            <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                                <h4 className="font-medium text-emerald-400 mb-2">🎯 Peak Performance</h4>
+                                <p className="text-sm text-white/70">
+                                    Your response speed in Backend interviews has peaked. You're ready for "Senior Level" challenges in Node.js.
+                                </p>
+                            </div>
+                            <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                                <h4 className="font-medium text-amber-400 mb-2">📈 Growth Ops</h4>
+                                <p className="text-sm text-white/70">
+                                    System Design is your biggest growth opportunity. Focus on Load Balancing and Caching strategies this week.
+                                </p>
+                            </div>
+                            <div className="p-4 rounded-xl bg-accent-indigo/10 border border-accent-indigo/20 col-span-2">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h4 className="font-medium text-accent-indigo mb-1">🚀 Road to Interview Pro</h4>
+                                        <p className="text-sm text-white/70">
+                                            Maintain your current streak for 3 more days to unlock the next level of mock simulations.
+                                        </p>
+                                    </div>
+                                    <button className="btn-primary text-xs py-2">View Roadmap</button>
+                                </div>
+                            </div>
                         </div>
-                        <div className="p-4 rounded-xl bg-accent-indigo/10 border border-accent-indigo/20">
-                            <h4 className="font-medium text-accent-indigo mb-2">🚀 Next Milestone</h4>
-                            <p className="text-sm text-white/70">
-                                You're 3 interviews away from reaching the "Interview Pro" achievement. Keep up the consistency!
-                            </p>
-                        </div>
-                    </div>
-                </motion.div>
+                    </motion.div>
+                </div>
             </div>
         </DashboardLayout>
     );
