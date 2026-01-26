@@ -21,6 +21,8 @@ jobs:
         run: |
           git config --global user.email "sharvaribhondekar23@gmail.com"
           git config --global user.name "sharvarianand"
-          # Install git-subtree
-          # Force push the backend folder to the main branch of the HF Space
-          git subtree push --prefix backend https://user:$HF_TOKEN@huggingface.co/spaces/sharvarianand/InterVueX-Backend main
+          # 1. Split the backend folder into a temporary branch
+          git subtree split --prefix backend -b hf-sync-branch
+          
+          # 2. Force push that branch to Hugging Face main
+          git push --force https://user:$HF_TOKEN@huggingface.co/spaces/sharvarianand/InterVueX-Backend hf-sync-branch:main
