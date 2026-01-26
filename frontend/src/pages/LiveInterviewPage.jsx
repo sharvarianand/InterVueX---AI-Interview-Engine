@@ -63,6 +63,11 @@ export default function LiveInterviewPage() {
     const [postureScore, setPostureScore] = useState(null);
     const [speakingStyle, setSpeakingStyle] = useState(null);
 
+    // Feedback state
+    const [rating, setRating] = useState(0);
+    const [hoverRating, setHoverRating] = useState(0);
+    const [feedback, setFeedback] = useState('');
+
     // Camera/Mic state
     const [cameraOn, setCameraOn] = useState(true);
     const [micOn, setMicOn] = useState(true);
@@ -952,16 +957,48 @@ export default function LiveInterviewPage() {
                                     <CheckCircle2 className="w-10 h-10 text-emerald-400" />
                                 </div>
                                 <h2 className="text-2xl font-display font-bold mb-2">Evaluation Complete!</h2>
-                                <p className="text-white/60">Your interview has been completed and evaluated.</p>
+                                <p className="text-white/60">Your interview has been completed. How was your experience?</p>
+                            </div>
+
+                            {/* Feedback Form */}
+                            <div className="mb-6 space-y-4">
+                                <div className="flex justify-center gap-2">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                        <button
+                                            key={star}
+                                            onClick={() => setRating(star)}
+                                            onMouseEnter={() => setHoverRating(star)}
+                                            onMouseLeave={() => setHoverRating(0)}
+                                            className="transition-transform hover:scale-110"
+                                        >
+                                            <Sparkles
+                                                className={`w-8 h-8 ${star <= (hoverRating || rating)
+                                                    ? 'text-yellow-400 fill-yellow-400'
+                                                    : 'text-white/20'
+                                                    }`}
+                                            />
+                                        </button>
+                                    ))}
+                                </div>
+                                <textarea
+                                    value={feedback}
+                                    onChange={(e) => setFeedback(e.target.value)}
+                                    placeholder="Any feedback for us? (Optional)"
+                                    className="w-full h-24 input-glass resize-none text-sm"
+                                />
                             </div>
 
                             <div className="space-y-3 mb-6">
                                 <button
-                                    onClick={() => navigate('/reports')}
+                                    onClick={() => {
+                                        console.log('Feedback submitted:', { rating, feedback });
+                                        localStorage.setItem('last_interview_feedback', JSON.stringify({ rating, feedback, date: new Date() }));
+                                        navigate('/reports');
+                                    }}
                                     className="w-full btn-primary flex items-center justify-center gap-2"
                                 >
                                     <FileText className="w-5 h-5" />
-                                    <span>Check Interview Report</span>
+                                    <span>Submit & View Report</span>
                                 </button>
                                 <button
                                     onClick={() => {
@@ -978,7 +1015,7 @@ export default function LiveInterviewPage() {
                                     className="w-full btn-secondary flex items-center justify-center gap-2"
                                 >
                                     <Download className="w-5 h-5" />
-                                    <span>Download Report</span>
+                                    <span>Download Report PDF</span>
                                 </button>
                             </div>
 
@@ -989,7 +1026,7 @@ export default function LiveInterviewPage() {
                                 }}
                                 className="w-full text-white/60 hover:text-white text-sm"
                             >
-                                Close
+                                Skip Feedback
                             </button>
                         </motion.div>
                     </motion.div>
