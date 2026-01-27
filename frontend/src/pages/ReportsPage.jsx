@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -19,7 +19,8 @@ import {
     Star,
     Award,
     BarChart3,
-    PieChart
+    PieChart,
+    RefreshCw
 } from 'lucide-react';
 import {
     RadarChart,
@@ -36,67 +37,7 @@ import {
     CartesianGrid
 } from 'recharts';
 import DashboardLayout from '../layouts/DashboardLayout';
-
-// Sample report data
-const sampleReport = {
-    id: 1,
-    type: 'technical',
-    title: 'Technical Interview - Full Stack',
-    date: '2024-01-26',
-    duration: '34 min',
-    questionsAnswered: 5,
-    totalQuestions: 5,
-    overallScore: 78,
-    scores: {
-        correctness: 82,
-        depth: 75,
-        clarity: 80,
-        practicalUnderstanding: 72,
-        communication: 85
-    },
-    skillScores: [
-        { skill: 'Problem Solving', score: 85, fullMark: 100 },
-        { skill: 'Technical Depth', score: 72, fullMark: 100 },
-        { skill: 'Communication', score: 88, fullMark: 100 },
-        { skill: 'Code Quality', score: 78, fullMark: 100 },
-        { skill: 'System Design', score: 65, fullMark: 100 },
-        { skill: 'Best Practices', score: 80, fullMark: 100 }
-    ],
-    strongAreas: [
-        'Excellent explanation of JavaScript closures',
-        'Good understanding of React Virtual DOM',
-        'Clear communication and structured answers'
-    ],
-    weakAreas: [
-        'System design concepts need more depth',
-        'Could improve on async/await error handling',
-        'Database optimization knowledge gaps'
-    ],
-    missedConcepts: [
-        'Database indexing strategies',
-        'Microservices communication patterns',
-        'Caching strategies'
-    ],
-    timeline: [
-        { question: 1, score: 85, time: 150, topic: 'JavaScript Fundamentals' },
-        { question: 2, score: 72, time: 180, topic: 'Event Loop' },
-        { question: 3, score: 88, time: 120, topic: 'React Virtual DOM' },
-        { question: 4, score: 75, time: 165, topic: 'Closures' },
-        { question: 5, score: 68, time: 180, topic: 'System Design' }
-    ],
-    proctoring: {
-        violations: 0,
-        status: 'clean'
-    }
-};
-
-const pastReports = [
-    { id: 1, type: 'technical', title: 'DSA Interview', score: 82, date: '2 hours ago' },
-    { id: 2, type: 'hr', title: 'Behavioral Round', score: 88, date: 'Yesterday' },
-    { id: 3, type: 'project', title: 'E-commerce Viva', score: 75, date: '3 days ago' },
-    { id: 4, type: 'technical', title: 'System Design', score: 70, date: '1 week ago' },
-    { id: 5, type: 'hr', title: 'Leadership Skills', score: 85, date: '2 weeks ago' },
-];
+import { useStore } from '../store/useStore';
 
 const typeIcons = {
     technical: Code,
@@ -110,9 +51,65 @@ const typeGradients = {
     project: 'from-purple-500 to-violet-500'
 };
 
+// Default report structure for display
+const getDefaultReportData = (report) => ({
+    id: report.id || report.sessionId,
+    type: report.type || 'technical',
+    title: `${(report.type || 'Technical').charAt(0).toUpperCase() + (report.type || 'technical').slice(1)} Interview - ${report.role || 'Interview'}`,
+    date: report.date || report.interviewDate || new Date().toISOString(),
+    duration: report.duration || '0:00',
+    questionsAnswered: report.questionsAnswered || 0,
+    totalQuestions: report.totalQuestions || 5,
+    overallScore: report.overallScore || 50,
+    scores: report.skillBreakdown || {
+        correctness: 50,
+        depth: 50,
+        clarity: 50,
+        practicalUnderstanding: 50,
+        confidence: 50
+    },
+    skillScores: Object.entries(report.skillBreakdown || {}).map(([skill, score]) => ({
+        skill: skill.replace(/([A-Z])/g, ' $1').trim(),
+        score: score,
+        fullMark: 100
+    })),
+    strongAreas: report.strongAreas || [],
+    weakAreas: report.weakAreas || [],
+    missedConcepts: report.missedConcepts || [],
+    timeline: (report.questionEvaluations || []).map((q, i) => ({
+        question: i + 1,
+        score: q.overallScore * 10 || 50,
+        time: 120,
+        topic: q.questionId || `Question ${i + 1}`
+    })),
+    proctoring: report.proctoring || { violations: 0, status: 'clean' },
+    recommendation: report.recommendation || 'No recommendation available'
+});
+
 export default function ReportsPage() {
     const { id } = useParams();
-    const [selectedReport, setSelectedReport] = useState(id ? sampleReport : null);
+    const { reports } = useStore();
+    const [selectedReport, setSelectedReport] = useState(null);
+
+    // Load report by ID from URL or store
+    useEffect(() => {
+        if (id && reports.length > 0) {
+            const foundReport = reports.find(r => r.id === id || r.sessionId === id);
+            if (foundReport) {
+                setSelectedReport(getDefaultReportData(foundReport));
+            }
+        }
+    }, [id, reports]);
+
+    // Transform store reports for display
+    const displayReports = reports.map(r => ({
+        id: r.id || r.sessionId,
+        type: r.type || 'technical',
+        title: `${(r.type || 'Technical').charAt(0).toUpperCase() + (r.type || 'technical').slice(1)} Interview`,
+        score: r.overallScore || 50,
+        date: r.date || r.interviewDate ? new Date(r.date || r.interviewDate).toLocaleDateString() : 'Recently',
+        ...r
+    }));
 
     const getScoreColor = (score) => {
         if (score >= 80) return 'text-emerald-400';
@@ -156,22 +153,22 @@ export default function ReportsPage() {
             {/* Report Header Card */}
             <div className="glass-card p-6">
                 <div className="flex items-start gap-6">
-                    <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${typeGradients[sampleReport.type]} flex items-center justify-center flex-shrink-0`}>
+                    <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${typeGradients[selectedReport.type]} flex items-center justify-center flex-shrink-0`}>
                         {(() => {
-                            const Icon = typeIcons[sampleReport.type];
+                            const Icon = typeIcons[selectedReport.type];
                             return <Icon className="w-8 h-8 text-white" />;
                         })()}
                     </div>
                     <div className="flex-1">
-                        <h1 className="text-2xl font-display font-bold mb-2">{sampleReport.title}</h1>
+                        <h1 className="text-2xl font-display font-bold mb-2">{selectedReport.title}</h1>
                         <div className="flex flex-wrap gap-4 text-sm text-white/60">
                             <span className="flex items-center gap-1">
                                 <Clock className="w-4 h-4" />
-                                {sampleReport.duration}
+                                {selectedReport.duration}
                             </span>
-                            <span>{sampleReport.date}</span>
-                            <span>{sampleReport.questionsAnswered}/{sampleReport.totalQuestions} Questions</span>
-                            {sampleReport.proctoring.violations === 0 && (
+                            <span>{selectedReport.date}</span>
+                            <span>{selectedReport.questionsAnswered}/{selectedReport.totalQuestions} Questions</span>
+                            {selectedReport.proctoring.violations === 0 && (
                                 <span className="flex items-center gap-1 text-emerald-400">
                                     <CheckCircle2 className="w-4 h-4" />
                                     No Violations
@@ -180,8 +177,8 @@ export default function ReportsPage() {
                         </div>
                     </div>
                     <div className="text-center">
-                        <div className={`text-5xl font-display font-bold ${getScoreColor(sampleReport.overallScore)}`}>
-                            {sampleReport.overallScore}
+                        <div className={`text-5xl font-display font-bold ${getScoreColor(selectedReport.overallScore)}`}>
+                            {selectedReport.overallScore}
                         </div>
                         <div className="text-sm text-white/60">Overall Score</div>
                     </div>
@@ -190,7 +187,7 @@ export default function ReportsPage() {
 
             {/* Score Breakdown Grid */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                {Object.entries(sampleReport.scores).map(([key, value]) => (
+                {Object.entries(selectedReport.scores).map(([key, value]) => (
                     <motion.div
                         key={key}
                         initial={{ opacity: 0, y: 20 }}
@@ -209,7 +206,7 @@ export default function ReportsPage() {
                 <div className="glass-card p-6">
                     <h3 className="text-lg font-display font-semibold mb-6">Skill Analysis</h3>
                     <ResponsiveContainer width="100%" height={300}>
-                        <RadarChart data={sampleReport.skillScores}>
+                        <RadarChart data={selectedReport.skillScores}>
                             <PolarGrid stroke="rgba(255,255,255,0.1)" />
                             <PolarAngleAxis
                                 dataKey="skill"
@@ -236,7 +233,7 @@ export default function ReportsPage() {
                 <div className="glass-card p-6">
                     <h3 className="text-lg font-display font-semibold mb-6">Performance Timeline</h3>
                     <ResponsiveContainer width="100%" height={300}>
-                        <AreaChart data={sampleReport.timeline}>
+                        <AreaChart data={selectedReport.timeline}>
                             <defs>
                                 <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="5%" stopColor="#6366F1" stopOpacity={0.4} />
@@ -284,7 +281,7 @@ export default function ReportsPage() {
                         <h3 className="font-semibold">Strong Areas</h3>
                     </div>
                     <ul className="space-y-3">
-                        {sampleReport.strongAreas.map((item, i) => (
+                        {selectedReport.strongAreas.map((item, i) => (
                             <li key={i} className="flex items-start gap-2 text-sm text-white/70">
                                 <CheckCircle2 className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
                                 {item}
@@ -302,7 +299,7 @@ export default function ReportsPage() {
                         <h3 className="font-semibold">Areas to Improve</h3>
                     </div>
                     <ul className="space-y-3">
-                        {sampleReport.weakAreas.map((item, i) => (
+                        {selectedReport.weakAreas.map((item, i) => (
                             <li key={i} className="flex items-start gap-2 text-sm text-white/70">
                                 <AlertCircle className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" />
                                 {item}
@@ -320,7 +317,7 @@ export default function ReportsPage() {
                         <h3 className="font-semibold">Missed Concepts</h3>
                     </div>
                     <ul className="space-y-3">
-                        {sampleReport.missedConcepts.map((item, i) => (
+                        {selectedReport.missedConcepts.map((item, i) => (
                             <li key={i} className="flex items-start gap-2 text-sm text-white/70">
                                 <span className="w-4 h-4 rounded-full bg-red-500/20 flex items-center justify-center text-xs text-red-400 flex-shrink-0">
                                     {i + 1}
@@ -336,7 +333,7 @@ export default function ReportsPage() {
             <div className="glass-card p-6">
                 <h3 className="text-lg font-display font-semibold mb-6">Question-wise Breakdown</h3>
                 <div className="space-y-4">
-                    {sampleReport.timeline.map((q) => (
+                    {selectedReport.timeline.map((q) => (
                         <div key={q.question} className="flex items-center gap-4 p-4 rounded-xl bg-dark-700/30">
                             <div className="w-10 h-10 rounded-lg bg-dark-600 flex items-center justify-center text-white/60 font-medium">
                                 Q{q.question}
@@ -398,49 +395,69 @@ export default function ReportsPage() {
             {/* Stats Summary */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="glass-card p-5 text-center">
-                    <div className="text-3xl font-display font-bold gradient-text mb-1">24</div>
+                    <div className="text-3xl font-display font-bold gradient-text mb-1">{displayReports.length}</div>
                     <div className="text-sm text-white/50">Total Interviews</div>
                 </div>
                 <div className="glass-card p-5 text-center">
-                    <div className="text-3xl font-display font-bold text-emerald-400 mb-1">78%</div>
+                    <div className="text-3xl font-display font-bold text-emerald-400 mb-1">
+                        {displayReports.length > 0
+                            ? Math.round(displayReports.reduce((sum, r) => sum + (r.score || 0), 0) / displayReports.length)
+                            : 0}%
+                    </div>
                     <div className="text-sm text-white/50">Average Score</div>
                 </div>
                 <div className="glass-card p-5 text-center">
-                    <div className="text-3xl font-display font-bold text-accent-indigo mb-1">92%</div>
+                    <div className="text-3xl font-display font-bold text-accent-indigo mb-1">
+                        {displayReports.length > 0
+                            ? Math.max(...displayReports.map(r => r.score || 0))
+                            : 0}%
+                    </div>
                     <div className="text-sm text-white/50">Best Score</div>
                 </div>
                 <div className="glass-card p-5 text-center">
-                    <div className="text-3xl font-display font-bold text-amber-400 mb-1">+12%</div>
+                    <div className="text-3xl font-display font-bold text-amber-400 mb-1">+0%</div>
                     <div className="text-sm text-white/50">Improvement</div>
                 </div>
             </div>
 
             {/* Reports List */}
             <div className="glass-card divide-y divide-glass-border">
-                {pastReports.map((report) => {
-                    const Icon = typeIcons[report.type];
-                    return (
-                        <div
-                            key={report.id}
-                            onClick={() => setSelectedReport(report)}
-                            className="p-4 flex items-center gap-4 hover:bg-glass-light cursor-pointer transition-colors"
-                        >
-                            <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${typeGradients[report.type]} flex items-center justify-center`}>
-                                <Icon className="w-6 h-6 text-white" />
-                            </div>
-                            <div className="flex-1">
-                                <h3 className="font-medium mb-1">{report.title}</h3>
-                                <p className="text-sm text-white/50">{report.date}</p>
-                            </div>
-                            <div className="flex items-center gap-4">
-                                <div className={`text-2xl font-bold ${getScoreColor(report.score)}`}>
-                                    {report.score}%
+                {displayReports.length === 0 ? (
+                    <div className="p-8 text-center">
+                        <FileText className="w-12 h-12 text-white/20 mx-auto mb-4" />
+                        <h3 className="font-medium text-white/60 mb-2">No Reports Yet</h3>
+                        <p className="text-sm text-white/40 mb-4">Complete an interview to see your performance report here.</p>
+                        <Link to="/interview/setup" className="btn-primary inline-flex items-center gap-2">
+                            Start Interview
+                            <ChevronRight className="w-4 h-4" />
+                        </Link>
+                    </div>
+                ) : (
+                    displayReports.map((report) => {
+                        const Icon = typeIcons[report.type] || Code;
+                        return (
+                            <div
+                                key={report.id}
+                                onClick={() => setSelectedReport(getDefaultReportData(report))}
+                                className="p-4 flex items-center gap-4 hover:bg-glass-light cursor-pointer transition-colors"
+                            >
+                                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${typeGradients[report.type] || typeGradients.technical} flex items-center justify-center`}>
+                                    <Icon className="w-6 h-6 text-white" />
                                 </div>
-                                <ChevronRight className="w-5 h-5 text-white/40" />
+                                <div className="flex-1">
+                                    <h3 className="font-medium mb-1">{report.title}</h3>
+                                    <p className="text-sm text-white/50">{report.date}</p>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <div className={`text-2xl font-bold ${getScoreColor(report.score)}`}>
+                                        {report.score}%
+                                    </div>
+                                    <ChevronRight className="w-5 h-5 text-white/40" />
+                                </div>
                             </div>
-                        </div>
-                    );
-                })}
+                        );
+                    })
+                )}
             </div>
         </motion.div>
     );
