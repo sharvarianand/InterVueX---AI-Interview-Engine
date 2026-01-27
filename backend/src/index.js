@@ -23,6 +23,10 @@ import { errorHandler } from './middleware/errorHandler.js';
 import { rateLimiter } from './middleware/rateLimiter.js';
 
 const app = express();
+
+// Trust proxy for secure cookies behind reverse proxy (Hugging Face / Vercel / Render)
+app.set('trust proxy', 1);
+
 const server = createServer(app);
 
 // Initialize WebSocket
@@ -48,6 +52,11 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Rate limiting
 app.use(rateLimiter);
+
+// Root route for validation
+app.get('/', (req, res) => {
+    res.json({ message: 'InterVueX Backend is Running', status: 'active', timestamp: new Date().toISOString() });
+});
 
 // Health check
 app.get('/health', (req, res) => {
