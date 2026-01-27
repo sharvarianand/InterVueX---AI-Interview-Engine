@@ -1,7 +1,7 @@
 /**
  * API Configuration
  */
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sharvarianand-intervuex-backend.hf.space/api';
 
 // Token getter function - will be set by Clerk
 let getTokenFn = null;
@@ -177,9 +177,9 @@ export const cvAPI = {
     upload: async (file) => {
         const formData = new FormData();
         formData.append('cv', file);
-        
+
         const headers = {};
-        
+
         // Add auth token if available
         if (getTokenFn) {
             try {
@@ -191,7 +191,7 @@ export const cvAPI = {
                 console.warn('Failed to get auth token:', error);
             }
         }
-        
+
         return fetch(`${API_BASE_URL}/cv/upload`, {
             method: 'POST',
             headers,
@@ -226,9 +226,9 @@ export const speechAPI = {
         const formData = new FormData();
         formData.append('audio', audioBlob, 'recording.webm');
         formData.append('language', language);
-        
+
         const headers = {};
-        
+
         // Add auth token if available
         if (getTokenFn) {
             try {
@@ -240,7 +240,7 @@ export const speechAPI = {
                 console.warn('Failed to get auth token:', error);
             }
         }
-        
+
         return fetch(`${API_BASE_URL}/speech/transcribe`, {
             method: 'POST',
             headers,
@@ -261,9 +261,9 @@ export const speechAPI = {
             formData.append('audio', audioBlob, 'recording.webm');
         }
         formData.append('transcript', transcript);
-        
+
         const headers = {};
-        
+
         // Add auth token if available
         if (getTokenFn) {
             try {
@@ -275,7 +275,7 @@ export const speechAPI = {
                 console.warn('Failed to get auth token:', error);
             }
         }
-        
+
         return fetch(`${API_BASE_URL}/speech/analyze`, {
             method: 'POST',
             headers,

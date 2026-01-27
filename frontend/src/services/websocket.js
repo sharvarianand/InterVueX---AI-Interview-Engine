@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
  * Handles streaming AI responses and proctoring updates
  */
 
-const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3001';
+const WS_URL = import.meta.env.VITE_WS_URL || 'wss://sharvarianand-intervuex-backend.hf.space';
 
 class WebSocketService {
     constructor() {
