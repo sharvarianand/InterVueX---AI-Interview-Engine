@@ -1,8 +1,10 @@
 import { Router } from 'express';
 import { QuestionEngine } from '../services/questionEngine.js';
+import { InterviewService } from '../services/interviewService.js';
 
 const router = Router();
 const questionEngine = new QuestionEngine();
+const interviewService = new InterviewService();
 
 // POST /api/questions/generate - Generate next question
 router.post('/generate', async (req, res, next) => {
@@ -56,6 +58,16 @@ router.post('/generate', async (req, res, next) => {
                 success: false,
                 error: 'Failed to generate question'
             });
+        }
+
+        // Store question in session for report generation
+        if (sessionId) {
+            try {
+                await interviewService.addQuestion(sessionId, question);
+                console.log('Question added to session:', sessionId);
+            } catch (sessionError) {
+                console.warn('Could not add question to session:', sessionError.message);
+            }
         }
 
         console.log('Question generated successfully:', {
