@@ -39,20 +39,11 @@ app.use(cors(config.cors));
 // Logging
 app.use(morgan('dev'));
 
-// Clerk Middleware
-// Note: Requires CLERK_SECRET_KEY to be set in .env
-app.use(clerkMiddleware({
-    // Clerk middleware will automatically extract session from cookies or Authorization header
-    // Make sure CLERK_SECRET_KEY is set in your .env file
-}));
-
-// Body parsing
+// Body parsing (before routes that need it)
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Rate limiting
-app.use(rateLimiter);
-
+// Public routes - BEFORE Clerk middleware to avoid auth redirect loops
 // Root route for validation
 app.get('/', (req, res) => {
     res.json({ message: 'InterVueX Backend is Running', status: 'active', timestamp: new Date().toISOString() });
@@ -67,6 +58,16 @@ app.get('/health', (req, res) => {
         websocket: 'enabled'
     });
 });
+
+// Clerk Middleware - only for API routes that need authentication
+// Note: Requires CLERK_SECRET_KEY to be set in .env
+app.use('/api', clerkMiddleware({
+    // Clerk middleware will automatically extract session from cookies or Authorization header
+    // Make sure CLERK_SECRET_KEY is set in your .env file
+}));
+
+// Rate limiting
+app.use(rateLimiter);
 
 // API Routes
 app.use('/api/auth', authRoutes);
