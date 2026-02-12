@@ -4,13 +4,19 @@
 
 **Master Your Next Interview with AI Precision**
 
+### 🏆 Winner of the "Build with AI" 24-Hour Challenge 🏆
+
+[![Build with AI Winner](https://img.shields.io/badge/Build%20with%20AI-Winner-FFD700?style=for-the-badge&logo=googlegemini&logoColor=black)](https://www.edquest.pro/hackathon/build-with-ai-24-hours-challenge/certificate/hackcert-GYIINEQO)
+
+<br/>
+
 [![React](https://img.shields.io/badge/React-18.2-61dafb?logo=react)](https://reactjs.org/)
 [![Vite](https://img.shields.io/badge/Vite-5.0-646CFF?logo=vite)](https://vitejs.dev/)
 [![TailwindCSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC?logo=tailwindcss)](https://tailwindcss.com/)
 [![Node.js](https://img.shields.io/badge/Node.js-20+-339933?logo=node.js)](https://nodejs.org/)
 [![Supabase](https://img.shields.io/badge/Supabase-2.0-3ECF8E?logo=supabase)](https://supabase.com/)
 
-[**🚀 Live Demo**](https://inter-vue-x-ai-interview-engine.vercel.app/)
+[**🚀 Live Demo**](https://inter-vue-x-ai-interview-engine.vercel.app/) | [**📜 Winning Certificate**](https://www.edquest.pro/hackathon/build-with-ai-24-hours-challenge/certificate/hackcert-GYIINEQO)
 
 </div>
 
@@ -25,6 +31,14 @@
 - ✅ **Communication Quality** — Clarity and structure of responses
 - ✅ **Practical Application** — Real-world problem-solving ability
 - ✅ **Project Understanding** — Defense of your own work
+
+---
+
+## 🏆 Achievements
+
+- **Winner — Build with AI 24-Hour Challenge**: Secured the top spot in the intensive 24-hour hackathon organized by EdQuest.
+- **Top Feature Integration**: Recognized for the seamless integration of AI-driven adaptive questioning and real-time proctoring.
+- **Verification**: [Official Winning Certificate](https://www.edquest.pro/hackathon/build-with-ai-24-hours-challenge/certificate/hackcert-GYIINEQO)
 
 ---
 
